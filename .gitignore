@@ -4,3 +4,19 @@
 # python
 __pycache__/
 *.pyc
+
+# 런타임 상태 (config.json · plugins.json · env.json)
+data/*
+!data/.gitkeep
+
+# 설치된 plugin clone들
+plugins/*
+!plugins/.gitkeep
+
+# 머신별 상태 (Architecture.md §8.4)
+.claude/settings.local.json
+.claude-plugin/marketplace.json
+
+# streamlit 설치 시 자동 생성되는 skill 링크 (site-packages를 가리킴)
+.agents/
+.claude/skills/

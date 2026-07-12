@@ -81,7 +81,7 @@ flowchart TD
     B --> C{"환경 체크 (pm inspect --env)"}
     C -- 미비 --> D["체크리스트 화면: 항목별 pass/fail 표시,<br>실패 원인 + 복사 가능한 수정 명령어"]
     D -- 조치 후 재검사 --> C
-    C -- 완료 --> E["Streamlit UI"]
+    C -- 완료 --> E["UI 동시 기동:<br>① Streamlit headless 백그라운드 기동<br>② 브라우저로 셸(web/shell.html) 오픈<br>— 셸이 healthz 폴링으로 자동 연결 (§12.4)"]
     E --> F["로그인: 대상(org/계정, URL 붙여넣기 가능)<br>+ PAT(선택) + GitHub 호스트"]
     F --> G{"GitHub 권한 확인"}
     G -- 실패 --> F
@@ -199,9 +199,17 @@ pm update  plugin-a   → git pull → 재설치 트리거 (§6.3 캐시 특성 
 - `enabledPlugins`는 머신별 상태이므로 **`.claude/settings.local.json`**(git 비추적)에 둔다. 팀 공통 설정(권한 allowlist 등)은 `.claude/settings.json`(커밋).
 - 구현은 settings 파일 직접 편집 또는 `claude plugin enable/disable --scope project` CLI 위임 중 택일 — `claudeplug/registry.py` 뒤에 숨겨 어느 쪽이든 교체 가능(OCP).
 
-### 6.3 주의: 설치 캐시 복사
+### 6.3 주의: 설치 캐시 복사와 플러그인의 root path
 
-Claude Code는 플러그인 설치 시 디렉토리를 캐시로 **복사**한다 → `plugins/{name}`에서 `git pull`만 해서는 반영되지 않는다. `pm update` = `git pull` + 재설치로 이 특성을 흡수하고, `pm inspect`가 clone HEAD와 설치본의 차이를 표시한다.
+Claude Code는 marketplace 플러그인 설치 시 디렉토리 **트리 전체를 캐시로 복사**한다
+(`~/.claude/plugins/cache/{plugin}-{version}/` — 내부 구조 보존):
+
+- `plugins/{name}`에서 `git pull`만 해서는 반영되지 않는다 → `pm update` = `git pull` + 재설치로 흡수, `pm inspect`가 clone HEAD와 설치본의 차이를 표시.
+- **런타임에 플러그인이 보는 "자기 root"는 `plugins/{name}`이 아니라 캐시 복사본이다.** Claude Code가 이를 위해 제공하는 공식 변수:
+  - `${CLAUDE_PLUGIN_ROOT}` — 설치된(캐시) 플러그인 루트 절대경로. hooks·`.mcp.json`·monitors에서 치환되고 환경변수로도 export됨
+  - `${CLAUDE_PLUGIN_DATA}` — 버전 업데이트를 넘어 유지되는 영속 데이터 디렉토리(`~/.claude/plugins/data/{plugin}/`)
+- 트리가 통째로 복사되므로 **skill이 자기 폴더 내 파일을 상대경로로 참조하는 것은 그대로 동작**한다 (`skills/x/SKILL.md` → `./scripts/run.py` OK).
+- **함정 — cwd**: hook/monitor 스크립트의 작업 디렉토리는 플러그인 폴더가 아니라 **세션 cwd(= plugin_market 루트)**다. "현재 디렉토리 = 내 플러그인 폴더"를 가정한 스크립트는 깨진다 → `cd "${CLAUDE_PLUGIN_ROOT}" && …` 패턴 필수 (부록 A.5 경로 규칙).
 
 ### 6.4 상태 모델
 
@@ -440,6 +448,51 @@ async for message in query(
 
 - 폴백: SDK 미채택 시 `claude -p` subprocess도 프로젝트 설정·env 블록·플러그인을 동일하게 존중한다.
 
+### 12.4 UI 커스터마이징 전략 (HTML / CSS / JS)
+
+Streamlit 위에서 웹 디자인을 입히는 방법은 4단계로 나뉘며, 필요한 최소 단계만 쓴다:
+
+| 레벨 | 방법 | 가능한 것 | 한계 |
+|---|---|---|---|
+| 1 | `.streamlit/config.toml` `[theme]` | 앱 전체 색·폰트·라운딩 | 톤 조정 수준 |
+| 2 | `st.html()` / `st.markdown(unsafe_allow_html=True)`로 CSS 주입 + 정적 HTML | 커스텀 카드·배지·체크리스트 등 자유로운 마크업, 위젯 스타일 오버라이드 | **JS 실행 불가**. Streamlit 내부 클래스명(`.stButton` 등) 의존 CSS는 버전 업 시 깨질 수 있음 — 커스텀 클래스 중심으로 작성 |
+| 3 | `st.iframe()` (구 `st.components.v1.html` — 1.59+에서 대체) | HTML+CSS+**JS**가 iframe 안에서 완전 동작 (애니메이션, JS 라이브러리) | iframe 격리 — 본체 스타일과 분리, **JS→Python 양방향 통신 불가** (단방향 표시) |
+| 4 | Custom Component (React 등 + `Streamlit.setComponentValue`) | JS 이벤트를 Python으로 돌려받는 완전한 양방향 위젯 | Node 빌드 필요. 커뮤니티 컴포넌트(pip) 활용 가능 |
+
+**본 프로젝트 적용 지침**:
+- 체크리스트·플러그인 카드·상태 배지 → **레벨 2** (커스텀 클래스 CSS를 `ui/styles.py` 한 곳에 모음, 사용자 데이터는 `html.escape` 필수)
+- 터미널/챗 화면을 실제 터미널 룩으로 (xterm.js 등) → **레벨 4** 영역 — xterm.js 기반 커뮤니티 컴포넌트 존재, 채택 여부는 구현 시 결정
+- 페이지 전체 레이아웃/라우팅의 완전 재설계는 Streamlit rerun 모델 밖의 일 — 그 수준이 필요해지면 프레임워크 교체(FastAPI+프론트)를 검토하는 것이 맞다
+- 임시 예시 코드: `example/` 폴더 (레벨 1~3 + 아래 임베드 셸 데모, 구조 파악용 — 추후 삭제 예정)
+
+**임베드 셸 구성 (정적 HTML + Streamlit iframe) — 채택된 UI 구조**:
+
+```
+[정적 HTML 셸]  ← git 서버(GitHub/GHES Pages)에서 중앙 배포 — 디자인 100% 자유
+ ├─ 헤더 · 네비 · 소개 · 매뉴얼 (정적 콘텐츠)
+ └─ <iframe src="http://localhost:8501/?embed=true&section=…">
+                 └─ 각 사용자 PC의 local Streamlit (?embed=true = 공식 임베드 모드, 껍데기 제거)
+```
+
+- 셸은 org repo에 두고 Pages로 서빙 → **git push 한 번으로 전 사용자에게 디자인·공지 배포**. 인터랙티브 영역(로그인·스캔·설치·챗)만 각자 로컬 Streamlit이 담당
+- 셸 → Streamlit 통신은 iframe URL query param(`st.query_params` 수신) 단방향까지. 역방향 공식 경로 없음 — 상호작용은 iframe 안에서 완결
+- 제약: ① 로컬 Streamlit 서버 필요, ② https 셸 → http://localhost iframe은 Chrome/Edge/Firefox OK·**Safari 차단**, ③ iframe 내부는 여전히 Streamlit 룩(테마+CSS로 완화)
+- FastAPI 전면 전환 대비 비용이 훨씬 낮아, "시중 웹 수준 디자인" 요구의 1차 대응으로 채택
+
+**동시 기동 시퀀스 (launcher가 "html 열기"와 "Streamlit 실행"을 함께 처리)**:
+
+```
+run.sh / run.cmd  (환경 체크 통과 후)
+├─ ① "$PYTHON" -m streamlit run scripts/app.py --server.headless true  &   (백그라운드,
+│      headless라 Streamlit이 자체 브라우저 탭을 열지 않음)
+└─ ② 브라우저로 셸 오픈: open/xdg-open/start <셸 URL>                       (즉시)
+       └─ 셸의 JS가 http://localhost:8501/healthz 를 2초 간격 폴링(no-cors) →
+          서버가 뜨는 순간 자동으로 iframe 로드 = 기동 순서·대기 불필요
+```
+
+- 기동 순서를 강제하지 않아도 되는 이유가 **셸의 자동 재연결 폴링**이다: 셸이 먼저 떠도, Streamlit이 늦게 떠도, 사용자가 새로고침할 필요 없이 연결된다. Streamlit이 꺼져 있으면 셸은 실행 안내(복사 가능한 명령)를 표시한다.
+- 셸 URL은 config로: 중앙 배포본(Pages URL)이 기본, 오프라인/개발 시 로컬 파일(`web/shell.html`) 폴백.
+
 ---
 
 ## 13. 코딩 컨벤션 및 품질
@@ -499,7 +552,8 @@ plugin_market/
 ├─ scripts/                       # 동작파일 (prompts.txt의 Scripts)
 │  ├─ bin/pm, bin/pm.cmd          #   PATH 등록 shim ("pm.bin")
 │  ├─ pm/                         #   파이썬 패키지 (§5)
-│  ├─ app.py, ui/                 #   Streamlit
+│  ├─ app.py, ui/                 #   Streamlit (셸 iframe에 임베드되는 인터랙티브 영역)
+├─ web/                           # 정적 셸 (shell.html 등) — Pages 중앙 배포 대상 (§12.4)
 ├─ plugins/                       # 설치 plugin clone (내용 git 비추적)
 ├─ .claude/                       # local claude (settings.json 커밋 / settings.local.json 비추적)
 ├─ .claude-plugin/marketplace.json# pm이 관리하는 로컬 마켓플레이스
@@ -525,5 +579,11 @@ plugin으로 인식·설치되기 위한 repo 요건:
    `name`은 repo 이름과 일치 권장 (catalog·marketplace 키로 사용).
 3. 다음 중 **1개 이상** 제공: `commands/`, `agents/`, `skills/`, `hooks/`, `.mcp.json`.
 4. `pm inspect`의 규약 검사 항목: plugin.json 존재·파싱 가능, name 일치, 제공 디렉토리 존재, description 태그 유무.
+5. **경로 규칙 (§6.3의 캐시 복사 특성 때문에 필수)** — 플러그인은 설치 시 캐시로 복사되어 원래 위치(`plugins/{name}`)가 아닌 곳에서 실행된다:
+   - 자기 파일 참조: hooks·monitors·`.mcp.json`에서는 **`${CLAUDE_PLUGIN_ROOT}`** 사용 (절대경로·`plugins/{name}` 가정 금지)
+   - skill 내부: SKILL.md 기준 **상대경로**는 안전 (트리 구조가 보존 복사됨)
+   - **cwd 가정 금지**: 스크립트 실행 시 작업 디렉토리는 플러그인 폴더가 아니라 세션 cwd다 — 플러그인 폴더 기준으로 동작해야 하면 `cd "${CLAUDE_PLUGIN_ROOT}" && …`로 시작하거나 `.mcp.json`의 `cwd` 옵션 지정
+   - 영속 데이터(설정·상태)는 플러그인 폴더가 아니라 `${CLAUDE_PLUGIN_DATA}`에 기록 (캐시는 업데이트 시 교체됨)
+   - 플러그인 폴더 **밖** 참조(`../…`) 금지 — 캐시 설치 후 path traversal이 차단됨
 
 규약 미준수 repo의 처리(최소 plugin.json 자동 생성 adapter 여부)는 규약 확정 시 함께 결정한다.

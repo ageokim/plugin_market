@@ -1,0 +1,8 @@
+# lint/format 설정 전용 — 패키징 아님 (패키지는 pip 설치 없이 python -m으로 실행, §13.2)
+# TODO: Google Python Style 기반 pylint/formatter 설정 추가
+
+[tool.pylint.format]
+max-line-length = 80
+
+[tool.pylint.basic]
+docstring-min-length = 1
