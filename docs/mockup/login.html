@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plugin Market — 로그인 전 (목업)</title>
+<style>
+  :root {
+    --bg:#0e1117; --panel:#1a1d24; --line:#2d3139;
+    --text:#e6e6e6; --muted:#9aa0a6; --primary:#1a73e8; --green:#4ade80;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text);
+         font-family:-apple-system,"Segoe UI","Noto Sans KR",sans-serif; line-height:1.6; }
+
+  .mock-banner { background:#3d360f; color:#fbbf24; text-align:center;
+                 font-size:.8rem; padding:6px; }
+
+  header { display:flex; align-items:center; gap:24px; padding:14px 32px;
+           background:rgba(14,17,23,.9); border-bottom:1px solid var(--line); }
+  header .logo { font-weight:800; }
+  header .logo span { color:var(--primary); }
+  header nav { margin-left:auto; display:flex; gap:18px; font-size:.9rem; }
+  header nav a { color:var(--muted); text-decoration:none; }
+
+  /* 뒤에 깔린 잠긴 대시보드 (블러) */
+  .locked-bg { filter:blur(5px) brightness(.5); pointer-events:none; user-select:none;
+               padding:40px 32px; max-width:960px; margin:0 auto; }
+  .locked-bg .row { background:var(--panel); border:1px solid var(--line);
+                    border-radius:10px; padding:14px 18px; margin-bottom:10px; }
+
+  /* 로그인 카드 (첫 화면) */
+  .login-wrap { position:fixed; inset:0; display:flex; align-items:center;
+                justify-content:center; }
+  .login-card { width:400px; background:var(--panel); border:1px solid var(--line);
+                border-radius:16px; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  .login-card h2 { text-align:center; margin-bottom:4px; }
+  .login-card .sub { text-align:center; color:var(--muted); font-size:.82rem; margin-bottom:22px; }
+  .field { margin-bottom:14px; }
+  .field label { display:block; font-size:.78rem; color:var(--muted); margin-bottom:4px; }
+  .field input { width:100%; background:#0b0e12; border:1px solid var(--line);
+                 border-radius:8px; padding:10px 12px; color:var(--text); font-size:.9rem; }
+  .field .hint { font-size:.72rem; color:var(--muted); margin-top:3px; }
+  .keep { display:flex; align-items:center; gap:8px; font-size:.85rem;
+          color:var(--muted); margin:16px 0 20px; }
+  .btn-login { display:block; width:100%; background:var(--primary); color:#fff;
+               text-align:center; padding:11px; border-radius:8px; font-weight:700;
+               text-decoration:none; }
+  .lock-note { text-align:center; color:var(--muted); font-size:.75rem; margin-top:14px; }
+</style>
+</head>
+<body>
+
+<div class="mock-banner">🎨 목업 — 화면 모습 확인용 (실제 동작 없음) · 로그인 버튼을 누르면 "로그인 후" 화면으로 이동</div>
+
+<header>
+  <div class="logo">🧩 Plugin <span>Market</span></div>
+  <nav><a href="#">소개</a><a href="#">매뉴얼</a><a href="#">GitHub</a></nav>
+</header>
+
+<!-- 로그인 전이라 뒤 기능 영역은 잠겨서 흐릿하게만 보임 -->
+<div class="locked-bg">
+  <div class="row">plugin-a &nbsp; 코드 리뷰 자동화 &nbsp; 🟢 Enabled</div>
+  <div class="row">plugin-b &nbsp; API 클라이언트 생성 &nbsp; 🟡 Installed</div>
+  <div class="row">plugin-c &nbsp; 문서 템플릿 &nbsp; ⚪ Available</div>
+  <div class="row">🤖 Claude 챗 ...</div>
+</div>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <h2>🧩 Plugin Market</h2>
+    <div class="sub">GitHub organization 계정으로 로그인</div>
+
+    <div class="field">
+      <label>ID</label>
+      <input value="ageokim">
+    </div>
+    <div class="field">
+      <label>PWD (Personal Access Token)</label>
+      <input type="password" value="ghp_xxxxxxxxxxxx">
+      <div class="hint">GitHub 비밀번호가 아닌 PAT를 입력 (repo + read:org)</div>
+    </div>
+    <div class="field">
+      <label>Organization URL</label>
+      <input value="https://github.xxx.xxx/myorg">
+      <div class="hint">호스트(github.xxx.xxx)와 org(myorg)를 자동 인식</div>
+    </div>
+
+    <label class="keep"><input type="checkbox" checked> 로그인 상태 유지 (다음부터 자동 로그인)</label>
+
+    <a class="btn-login" href="main.html">로그인</a>
+    <div class="lock-note">🔒 로그인 전에는 스캔·설치·claude 기능이 잠깁니다</div>
+  </div>
+</div>
+
+</body>
+</html>
