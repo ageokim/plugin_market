@@ -20,19 +20,18 @@
            background:rgba(14,17,23,.9); border-bottom:1px solid var(--line); }
   header .logo { font-weight:800; }
   header .logo span { color:var(--primary); }
-  header nav { margin-left:auto; display:flex; gap:18px; font-size:.9rem; }
-  header nav a { color:var(--muted); text-decoration:none; }
 
-  /* 뒤에 깔린 잠긴 대시보드 (블러) */
+  /* 뒤에 깔린 잠긴 메인 화면 (블러) */
   .locked-bg { filter:blur(5px) brightness(.5); pointer-events:none; user-select:none;
-               padding:40px 32px; max-width:960px; margin:0 auto; }
-  .locked-bg .row { background:var(--panel); border:1px solid var(--line);
-                    border-radius:10px; padding:14px 18px; margin-bottom:10px; }
+               display:flex; height:calc(100vh - 120px); }
+  .locked-bg .side { width:240px; background:var(--panel); border-right:1px solid var(--line); padding:16px; }
+  .locked-bg .main { flex:1; padding:16px; }
+  .locked-bg .box  { background:var(--panel); border:1px solid var(--line);
+                     border-radius:10px; padding:14px; margin-bottom:10px; }
 
   /* 로그인 카드 (첫 화면) */
-  .login-wrap { position:fixed; inset:0; display:flex; align-items:center;
-                justify-content:center; }
-  .login-card { width:400px; background:var(--panel); border:1px solid var(--line);
+  .login-wrap { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
+  .login-card { width:360px; background:var(--panel); border:1px solid var(--line);
                 border-radius:16px; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
   .login-card h2 { text-align:center; margin-bottom:4px; }
   .login-card .sub { text-align:center; color:var(--muted); font-size:.82rem; margin-bottom:22px; }
@@ -41,35 +40,37 @@
   .field input { width:100%; background:#0b0e12; border:1px solid var(--line);
                  border-radius:8px; padding:10px 12px; color:var(--text); font-size:.9rem; }
   .field .hint { font-size:.72rem; color:var(--muted); margin-top:3px; }
-  .keep { display:flex; align-items:center; gap:8px; font-size:.85rem;
-          color:var(--muted); margin:16px 0 20px; }
   .btn-login { display:block; width:100%; background:var(--primary); color:#fff;
                text-align:center; padding:11px; border-radius:8px; font-weight:700;
-               text-decoration:none; }
-  .lock-note { text-align:center; color:var(--muted); font-size:.75rem; margin-top:14px; }
+               text-decoration:none; margin-top:6px; }
+  .note { text-align:center; color:var(--muted); font-size:.74rem; margin-top:14px; line-height:1.5; }
+  .note b { color:var(--green); }
 </style>
 </head>
 <body>
 
-<div class="mock-banner">🎨 목업 — 화면 모습 확인용 (실제 동작 없음) · 로그인 버튼을 누르면 "로그인 후" 화면으로 이동</div>
+<div class="mock-banner">🎨 목업 — 화면 모습 확인용 (실제 동작 없음) · 로그인 버튼 → "로그인 후" 화면으로 이동</div>
 
 <header>
   <div class="logo">🧩 Plugin <span>Market</span></div>
-  <nav><a href="#">소개</a><a href="#">매뉴얼</a><a href="#">GitHub</a></nav>
 </header>
 
-<!-- 로그인 전이라 뒤 기능 영역은 잠겨서 흐릿하게만 보임 -->
+<!-- 로그인 전이라 뒤 화면(사이드바+챗+터미널)은 잠겨서 흐릿하게만 보임 -->
 <div class="locked-bg">
-  <div class="row">plugin-a &nbsp; 코드 리뷰 자동화 &nbsp; 🟢 Enabled</div>
-  <div class="row">plugin-b &nbsp; API 클라이언트 생성 &nbsp; 🟡 Installed</div>
-  <div class="row">plugin-c &nbsp; 문서 템플릿 &nbsp; ⚪ Available</div>
-  <div class="row">🤖 Claude 챗 ...</div>
+  <div class="side">
+    <div class="box">🔗 org 추가 …</div>
+    <div class="box">plugin-a 🟢</div>
+  </div>
+  <div class="main">
+    <div class="box" style="height:45%">🤖 Claude 챗 …</div>
+    <div class="box" style="height:40%">🖥️ 터미널 …</div>
+  </div>
 </div>
 
 <div class="login-wrap">
   <div class="login-card">
     <h2>🧩 Plugin Market</h2>
-    <div class="sub">GitHub organization 계정으로 로그인</div>
+    <div class="sub">GitHub 계정으로 로그인</div>
 
     <div class="field">
       <label>ID</label>
@@ -78,18 +79,15 @@
     <div class="field">
       <label>PWD (Personal Access Token)</label>
       <input type="password" value="ghp_xxxxxxxxxxxx">
-      <div class="hint">GitHub 비밀번호가 아닌 PAT를 입력 (repo + read:org)</div>
+      <div class="hint">GitHub 비밀번호가 아닌 PAT (repo + read:org)</div>
     </div>
-    <div class="field">
-      <label>Organization URL</label>
-      <input value="https://github.xxx.xxx/myorg">
-      <div class="hint">호스트(github.xxx.xxx)와 org(myorg)를 자동 인식</div>
-    </div>
-
-    <label class="keep"><input type="checkbox" checked> 로그인 상태 유지 (다음부터 자동 로그인)</label>
 
     <a class="btn-login" href="main.html">로그인</a>
-    <div class="lock-note">🔒 로그인 전에는 스캔·설치·claude 기능이 잠깁니다</div>
+
+    <div class="note">
+      로그인하면 <b>자동 저장</b>되어 다음부터 이 창 없이 바로 시작됩니다<br>
+      organization 주소는 로그인 후 <b>사이드바에서</b> 추가합니다
+    </div>
   </div>
 </div>
 

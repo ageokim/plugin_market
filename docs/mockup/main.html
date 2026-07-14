@@ -8,249 +8,250 @@
   :root {
     --bg:#0e1117; --panel:#1a1d24; --line:#2d3139;
     --text:#e6e6e6; --muted:#9aa0a6; --primary:#1a73e8;
-    --green:#4ade80; --yellow:#fbbf24;
+    --green:#4ade80; --yellow:#fbbf24; --sbw:280px;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text);
-         font-family:-apple-system,"Segoe UI","Noto Sans KR",sans-serif; line-height:1.55; }
+  body { background:var(--bg); color:var(--text); overflow:hidden;
+         font-family:-apple-system,"Segoe UI","Noto Sans KR",sans-serif; line-height:1.5; }
 
-  .mock-banner { background:#3d360f; color:#fbbf24; text-align:center;
-                 font-size:.8rem; padding:6px; }
+  .mock-banner { background:#3d360f; color:#fbbf24; text-align:center; font-size:.78rem; padding:5px; }
 
-  header { display:flex; align-items:center; gap:16px; padding:12px 24px;
-           background:rgba(14,17,23,.9); border-bottom:1px solid var(--line); }
+  header { display:flex; align-items:center; gap:14px; padding:10px 20px;
+           background:rgba(14,17,23,.95); border-bottom:1px solid var(--line); }
   header .logo { font-weight:800; }
   header .logo span { color:var(--primary); }
-  header .conn { color:var(--muted); font-size:.82rem; }
+  header .conn { color:var(--muted); font-size:.8rem; }
   header .conn b { color:var(--text); }
-  header .logout { margin-left:auto; }
   .btn { display:inline-block; background:var(--panel); border:1px solid var(--line);
-         color:var(--text); padding:6px 14px; border-radius:8px; font-size:.82rem;
+         color:var(--text); padding:5px 12px; border-radius:8px; font-size:.8rem;
          text-decoration:none; cursor:pointer; }
   .btn.primary { background:var(--primary); border-color:var(--primary); color:#fff; font-weight:600; }
-  .btn.small { padding:3px 10px; font-size:.75rem; }
+  .btn.small { padding:2px 9px; font-size:.72rem; }
+  header .logout { margin-left:auto; }
 
-  /* ── 2-패널 레이아웃: 좌 = 플러그인 목록 / 우 = claude 사용창 ── */
-  .layout { display:grid; grid-template-columns: 1fr 1fr; gap:16px;
-            max-width:1240px; margin:18px auto; padding:0 24px; align-items:start; }
-  @media (max-width: 900px){ .layout { grid-template-columns:1fr; } }
-  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; }
-  .panel .head { display:flex; align-items:center; gap:10px;
-                 padding:12px 16px; border-bottom:1px solid var(--line); }
-  .panel .head h3 { font-size:.95rem; margin-right:auto; }
+  /* ── 레이아웃: 사이드바 + 메인 ─────────────────────────── */
+  .app { display:flex; height:calc(100vh - 76px); position:relative; }
 
-  /* 좌: 플러그인 목록 */
-  .toolbar { display:flex; align-items:center; gap:12px; padding:12px 16px;
-             border-bottom:1px solid var(--line); font-size:.83rem; color:var(--muted);
-             flex-wrap:wrap; }
-  .search { flex:1; min-width:160px; background:#0b0e12; border:1px solid var(--line);
-            border-radius:8px; padding:7px 12px; color:var(--text); font-size:.83rem; }
-  .chip { border:1px solid var(--line); border-radius:999px; padding:3px 10px;
-          font-size:.74rem; cursor:pointer; color:var(--muted); }
+  /* 사이드바 */
+  .sidebar { width:var(--sbw); min-width:var(--sbw); background:var(--panel);
+             border-right:1px solid var(--line); display:flex; flex-direction:column;
+             transition:transform .22s ease; z-index:20; }
+  .sb-head { display:flex; align-items:center; gap:8px; padding:10px 12px;
+             border-bottom:1px solid var(--line); }
+  .sb-head h3 { font-size:.88rem; margin-right:auto; }
+  #pinBtn { cursor:pointer; border:1px solid var(--line); border-radius:6px;
+            padding:2px 8px; font-size:.78rem; background:var(--bg); }
+  #pinBtn.on { background:var(--primary); border-color:var(--primary); }
+
+  /* 미고정: 사이드바가 겹침(overlay) 모드로 전환, 평소엔 왼쪽으로 숨음 */
+  .app.unpinned .sidebar { position:absolute; top:0; bottom:0; left:0;
+                           transform:translateX(calc(-1 * var(--sbw)));
+                           box-shadow:8px 0 24px rgba(0,0,0,.45); }
+  .app.unpinned .sidebar.open { transform:translateX(0); }
+  /* 미고정일 때 왼쪽 가장자리 감지 레일 */
+  .rail { display:none; position:absolute; top:0; bottom:0; left:0; width:16px;
+          z-index:19; background:linear-gradient(90deg, rgba(26,115,232,.25), transparent);
+          align-items:center; justify-content:center; color:var(--muted); font-size:.7rem;
+          cursor:pointer; }
+  .app.unpinned .rail { display:flex; }
+
+  .sb-body { overflow-y:auto; flex:1; }
+  .sb-sec { padding:10px 12px; border-bottom:1px solid var(--line); }
+  .sb-sec .t { font-size:.72rem; color:var(--muted); margin-bottom:6px; }
+  .orgadd { display:flex; gap:6px; }
+  .orgadd input { flex:1; min-width:0; background:#0b0e12; border:1px solid var(--line);
+                  border-radius:7px; padding:6px 9px; color:var(--text); font-size:.76rem; }
+  .search { width:100%; background:#0b0e12; border:1px solid var(--line); border-radius:7px;
+            padding:6px 9px; color:var(--text); font-size:.78rem; margin-bottom:6px; }
+  .chips { display:flex; gap:5px; flex-wrap:wrap; }
+  .chip { border:1px solid var(--line); border-radius:999px; padding:1px 8px;
+          font-size:.68rem; color:var(--muted); cursor:pointer; }
   .chip.on { background:var(--primary); border-color:var(--primary); color:#fff; }
-  /* 목록은 패널 안에서 세로 스크롤 — 3개까지만 보이고 나머지는 스크롤 */
-  .plugin-list { max-height:152px; overflow-y:auto; }
-  .plugin { display:flex; align-items:center; gap:10px; padding:12px 16px;
-            border-bottom:1px solid var(--line); }
-  .plugin:last-of-type { border-bottom:none; }
-  .list-foot { padding:8px 16px; font-size:.74rem; color:var(--muted);
-               border-top:1px solid var(--line); }
-  .plugin .name { font-weight:700; min-width:84px; }
-  .plugin .desc { color:var(--muted); font-size:.8rem; flex:1; }
-  .badge { border-radius:999px; padding:2px 10px; font-size:.72rem; font-weight:700; white-space:nowrap; }
+
+  .org { border-bottom:1px solid var(--line); }
+  .org-h { display:flex; align-items:center; gap:6px; padding:8px 12px;
+           font-size:.8rem; font-weight:700; background:#171a20; }
+  .org-h .n { color:var(--muted); font-weight:400; font-size:.72rem; }
+  .org-h .sp { margin-left:auto; display:flex; gap:4px; }
+  .plugin { display:flex; align-items:center; gap:6px; padding:8px 12px 8px 18px;
+            border-top:1px solid #22262e; }
+  .plugin .nm { font-size:.8rem; font-weight:600; }
+  .plugin .desc { color:var(--muted); font-size:.68rem; flex:1;
+                  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .badge { border-radius:999px; padding:1px 7px; font-size:.64rem; font-weight:700; white-space:nowrap; }
   .badge.on  { background:#0f3d2e; color:var(--green); }
   .badge.off { background:#3d360f; color:var(--yellow); }
   .badge.no  { background:#2d3139; color:var(--muted); }
-  details { border-top:1px solid var(--line); padding:10px 16px; font-size:.8rem; color:var(--muted); }
-  details table { width:100%; border-collapse:collapse; margin-top:8px; font-size:.76rem; }
-  details th, details td { text-align:left; padding:4px 8px; border-bottom:1px solid var(--line); }
+  details.inspect { padding:8px 12px; font-size:.74rem; color:var(--muted); }
 
-  /* 우: claude 사용창 */
-  .tabs { display:flex; gap:6px; }
-  .tab { padding:5px 12px; border-radius:8px; font-size:.8rem; cursor:pointer;
-         color:var(--muted); border:1px solid transparent; }
-  .tab.on { background:var(--bg); border-color:var(--line); color:var(--text); }
-  .ctx { font-size:.72rem; color:var(--muted); padding:8px 16px;
-         border-bottom:1px solid var(--line); }
-  .ctx code { color:var(--green); }
-  .chat { padding:14px 16px; display:flex; flex-direction:column; gap:12px;
-          min-height:340px; }
-  .msg { max-width:88%; padding:10px 14px; border-radius:12px; font-size:.85rem; }
+  /* 메인: 챗(상) + 터미널(하) */
+  .main { flex:1; display:flex; flex-direction:column; min-width:0; }
+  .panel-h { display:flex; align-items:center; gap:10px; padding:8px 14px;
+             border-bottom:1px solid var(--line); background:#12151b; }
+  .panel-h h3 { font-size:.85rem; margin-right:auto; }
+  .hint { font-size:.7rem; color:var(--muted); }
+
+  .chat { flex:1.1; display:flex; flex-direction:column; border-bottom:1px solid var(--line); min-height:0; }
+  .msgs { flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
+  .msg { max-width:82%; padding:8px 13px; border-radius:12px; font-size:.82rem; }
   .msg.user { align-self:flex-end; background:var(--primary); color:#fff; }
-  .msg.claude { align-self:flex-start; background:var(--bg); border:1px solid var(--line); }
+  .msg.claude { align-self:flex-start; background:var(--panel); border:1px solid var(--line); }
   .msg .skill { display:inline-block; background:#0f3d2e; color:var(--green);
-                border-radius:6px; padding:1px 8px; font-size:.72rem; margin:2px 0; }
-  .input { display:flex; gap:8px; padding:12px 16px; border-top:1px solid var(--line); }
-  .input input { flex:1; background:#0b0e12; border:1px solid var(--line);
-                 border-radius:8px; padding:10px 12px; color:var(--text); font-size:.85rem; }
+                border-radius:6px; padding:0 7px; font-size:.68rem; margin-bottom:3px; }
+  .chat-in { display:flex; gap:8px; padding:10px 14px; border-top:1px solid var(--line); }
+  .chat-in input { flex:1; background:#0b0e12; border:1px solid var(--line);
+                   border-radius:8px; padding:8px 12px; color:var(--text); font-size:.82rem; }
 
-  /* 터미널 탭 내용 */
-  .term { display:none; background:#0b0e12; margin:14px 16px; border:1px solid var(--line);
-          border-radius:10px; padding:14px; font-family:Menlo,Consolas,monospace;
-          font-size:.8rem; color:var(--green); min-height:340px; white-space:pre-wrap; }
+  .term-wrap { flex:1; display:flex; flex-direction:column; min-height:0; }
+  .term { flex:1; overflow-y:auto; background:#0b0e12; margin:10px 14px 14px;
+          border:1px solid var(--line); border-radius:10px; padding:12px;
+          font-family:"SF Mono",Menlo,Consolas,monospace; font-size:.76rem;
+          color:#d7dde5; white-space:pre-wrap; }
   .term .p { color:#60a5fa; }
-  .term-note { display:none; font-size:.75rem; color:var(--muted); padding:0 16px 14px; }
-  body.term-mode .chat, body.term-mode .input { display:none; }
-  body.term-mode .term, body.term-mode .term-note { display:block; }
+  .term .g { color:var(--green); }
+  .term .cursor { display:inline-block; width:7px; height:13px; background:var(--green);
+                  animation:blink 1s step-end infinite; vertical-align:middle; }
+  @keyframes blink { 50% { opacity:0; } }
 </style>
 </head>
 <body>
 
-<div class="mock-banner">🎨 목업 — 화면 모습 확인용 (실제 동작 없음) · 우측 상단 로그아웃 → 로그인 화면 · 우측 패널의 탭 클릭해보세요</div>
+<div class="mock-banner">🎨 목업 — <b>📌 버튼</b>으로 사이드바 고정/미고정 전환 · 미고정일 때 <b>왼쪽 가장자리에 마우스</b>를 대보세요 · 로그아웃 → 로그인 화면</div>
 
 <header>
   <div class="logo">🧩 Plugin <span>Market</span></div>
-  <div class="conn">연결: <b>github.xxx.xxx/myorg</b> · 로그인: <b>ageokim</b></div>
+  <div class="conn">서버: <b>github.xxx.xxx</b> · 로그인: <b>ageokim</b> (자동)</div>
   <a class="btn logout" href="login.html">로그아웃</a>
 </header>
 
-<div class="layout">
+<div class="app" id="app">
 
-  <!-- ◀ 왼쪽: 플러그인 표시창 (검색·설치·상태) -->
-  <div class="panel">
-    <div class="head">
+  <!-- 미고정일 때 왼쪽 가장자리 감지 레일 -->
+  <div class="rail" id="rail">»</div>
+
+  <!-- ◀ 사이드바: 플러그인 파트 -->
+  <aside class="sidebar" id="sb">
+    <div class="sb-head">
       <h3>📦 플러그인</h3>
-      <span class="btn primary small">🔄 GitHub 스캔</span>
+      <span id="pinBtn" class="on" title="사이드바 고정/미고정">📌 고정</span>
     </div>
-    <div class="toolbar">
-      <input class="search" placeholder="🔎 이름·설명으로 검색…">
-      <span class="chip on">전체 24</span>
-      <span class="chip">🟢 3</span>
-      <span class="chip">🟡 2</span>
-      <span class="chip">⚪ 19</span>
+    <div class="sb-body">
+
+      <div class="sb-sec">
+        <div class="t">🔗 organization 추가 (URL — 권한 있어야 등록됨)</div>
+        <div class="orgadd">
+          <input placeholder="https://github.xxx.xxx/org-c">
+          <span class="btn small primary">＋</span>
+        </div>
+      </div>
+
+      <div class="sb-sec">
+        <input class="search" placeholder="🔎 플러그인 검색…">
+        <div class="chips">
+          <span class="chip on">전체 8</span><span class="chip">🟢 2</span>
+          <span class="chip">🟡 1</span><span class="chip">⚪ 5</span>
+        </div>
+      </div>
+
+      <div class="org">
+        <div class="org-h">▼ org-a <span class="n">(3)</span>
+          <span class="sp"><span class="btn small">🔄</span><span class="btn small">✕</span></span>
+        </div>
+        <div class="plugin"><span class="nm">plugin-a</span><span class="desc">코드 리뷰 자동화</span>
+          <span class="badge on">🟢</span><span class="btn small">Off</span></div>
+        <div class="plugin"><span class="nm">plugin-b</span><span class="desc">API 클라이언트 생성</span>
+          <span class="badge off">🟡</span><span class="btn small">On</span></div>
+        <div class="plugin"><span class="nm">plugin-c</span><span class="desc">문서 템플릿</span>
+          <span class="badge no">⚪</span><span class="btn small primary">Install</span></div>
+      </div>
+
+      <div class="org">
+        <div class="org-h">▼ org-b <span class="n">(5)</span>
+          <span class="sp"><span class="btn small">🔄</span><span class="btn small">✕</span></span>
+        </div>
+        <div class="plugin"><span class="nm">plugin-x</span><span class="desc">로그 분석 workflow</span>
+          <span class="badge on">🟢</span><span class="btn small">Off</span></div>
+        <div class="plugin"><span class="nm">plugin-y</span><span class="desc">보안 점검 skill</span>
+          <span class="badge no">⚪</span><span class="btn small primary">Install</span></div>
+      </div>
+
+      <details class="inspect"><summary>🔍 Inspect — 상태 상세</summary>
+        org-a/plugin-a: clone ✅ 등록 ✅ 활성 ✅ · org-b/plugin-x: 업데이트 있음
+      </details>
     </div>
+  </aside>
 
-    <!-- 많아지면 이 영역 안에서 세로 스크롤 (마우스휠) — 페이지 넘김 없음 -->
-    <div class="plugin-list">
-      <div class="plugin">
-        <span class="name">plugin-a</span>
-        <span class="desc">코드 리뷰 자동화 skill 모음</span>
-        <span class="badge on">🟢 Enabled</span>
-        <span class="btn small">Disable</span><span class="btn small">Uninstall</span>
-      </div>
-      <div class="plugin">
-        <span class="name">plugin-b</span>
-        <span class="desc">API 클라이언트 생성기</span>
-        <span class="badge off">🟡 Installed</span>
-        <span class="btn small">Enable</span><span class="btn small">Uninstall</span>
-      </div>
-      <div class="plugin">
-        <span class="name">plugin-c</span>
-        <span class="desc">문서 템플릿 커맨드</span>
-        <span class="badge no">⚪ Available</span>
-        <span class="btn small primary">Install</span>
-      </div>
-      <div class="plugin">
-        <span class="name">plugin-d</span>
-        <span class="desc">테스트 자동 생성</span>
-        <span class="badge on">🟢 Enabled</span>
-        <span class="btn small">Disable</span><span class="btn small">Uninstall</span>
-      </div>
-      <div class="plugin">
-        <span class="name">plugin-e</span>
-        <span class="desc">배포 스크립트 모음</span>
-        <span class="badge no">⚪ Available</span>
-        <span class="btn small primary">Install</span>
-      </div>
-      <div class="plugin">
-        <span class="name">plugin-f</span>
-        <span class="desc">사내 API 문서 검색</span>
-        <span class="badge no">⚪ Available</span>
-        <span class="btn small primary">Install</span>
-      </div>
-      <div class="plugin">
-        <span class="name">plugin-g</span>
-        <span class="desc">DB 마이그레이션 도우미</span>
-        <span class="badge off">🟡 Installed</span>
-        <span class="btn small">Enable</span><span class="btn small">Uninstall</span>
-      </div>
-      <div class="plugin">
-        <span class="name">plugin-h</span>
-        <span class="desc">로그 분석 workflow</span>
-        <span class="badge on">🟢 Enabled</span>
-        <span class="btn small">Disable</span><span class="btn small">Uninstall</span>
-      </div>
-      <div class="plugin">
-        <span class="name">plugin-i</span>
-        <span class="desc">보안 점검 skill</span>
-        <span class="badge no">⚪ Available</span>
-        <span class="btn small primary">Install</span>
-      </div>
-      <div class="plugin">
-        <span class="name">plugin-j</span>
-        <span class="desc">회의록 요약 커맨드</span>
-        <span class="badge no">⚪ Available</span>
-        <span class="btn small primary">Install</span>
-      </div>
-    </div>
-    <div class="list-foot">전체 24개 — 3개씩 표시, 스크롤로 더 보기 · 검색하면 즉시 좁혀짐</div>
+  <!-- ▶ 메인: claude 챗 (상) + 내장 터미널 (하) -->
+  <div class="main">
 
-    <details>
-      <summary>🔍 Inspect — 상태 상세</summary>
-      <table>
-        <tr><th>plugin</th><th>clone</th><th>등록</th><th>활성</th><th>버전</th></tr>
-        <tr><td>plugin-a</td><td>✅</td><td>✅</td><td>✅</td><td>최신</td></tr>
-        <tr><td>plugin-b</td><td>✅</td><td>✅</td><td>—</td><td>업데이트 있음</td></tr>
-        <tr><td>plugin-c</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
-      </table>
-    </details>
-  </div>
-
-  <!-- ▶ 오른쪽: claude 사용창 -->
-  <div class="panel">
-    <div class="head">
-      <h3>🤖 Claude</h3>
-      <span class="btn small primary">➕ 새 대화</span>
-      <div class="tabs">
-        <span class="tab on" id="tab-chat" onclick="mode(false)">💬 챗</span>
-        <span class="tab" id="tab-term" onclick="mode(true)">🖥️ 터미널</span>
-      </div>
-    </div>
-    <div class="ctx">작업 위치: <code>plugin_market/</code> · 활성 플러그인: <code>plugin-a</code> · 방금 설치한 플러그인은 <b>➕ 새 대화</b>부터 적용됩니다</div>
-
-    <!-- 챗 모드 (기본, SSH에서도 동작) -->
     <div class="chat">
-      <div class="msg user">방금 받은 repo 코드리뷰 해줘</div>
-      <div class="msg claude">
-        <span class="skill">▸ plugin-a : code-review skill 사용</span><br>
-        네, plugin-a의 코드리뷰 skill로 검토하겠습니다. 3개 파일에서 2건의 이슈를 찾았습니다:<br>
-        1. <b>auth.py:42</b> — 토큰 만료 검사 누락 …<br>
-        2. <b>client.py:88</b> — 예외 처리 없음 …
+      <div class="panel-h">
+        <h3>🤖 Claude 챗</h3>
+        <span class="hint">plugin-a 설치됨 — ➕ 새 대화부터 적용</span>
+        <span class="btn small primary">➕ 새 대화</span>
       </div>
-      <div class="msg user">1번 고쳐줘</div>
-      <div class="msg claude">auth.py:42에 만료 검사를 추가했습니다. 테스트 7건 통과 ✅</div>
-    </div>
-    <div class="input">
-      <input placeholder="claude에게 메시지 입력…">
-      <span class="btn primary">전송</span>
+      <div class="msgs">
+        <div class="msg user">방금 받은 repo 코드리뷰 해줘</div>
+        <div class="msg claude">
+          <span class="skill">▸ plugin-a : code-review skill</span><br>
+          3개 파일에서 2건의 이슈를 찾았습니다:<br>
+          1. <b>auth.py:42</b> — 토큰 만료 검사 누락 …
+        </div>
+        <div class="msg user">1번 고쳐줘</div>
+        <div class="msg claude">auth.py:42에 만료 검사를 추가했습니다. 테스트 7건 통과 ✅</div>
+      </div>
+      <div class="chat-in">
+        <input placeholder="claude에게 메시지… (pm 명령도 입력 가능)">
+        <span class="btn primary">전송</span>
+      </div>
     </div>
 
-    <!-- 터미널 모드 (로컬 전용) -->
-    <div class="term"><span class="p">$ claude</span>          ← 터미널에서 claude 실행
-╭──────────────────────────────────╮
-│ ✻ Claude Code                    │
-│   cwd: ~/plugin_market           │
-│   plugins: plugin-a (enabled)    │
-╰──────────────────────────────────╯
-&gt; 방금 받은 repo 코드리뷰 해줘
-  ⏺ plugin-a:code-review skill 로딩...
-&gt; exit               ← ① claude 종료
-<span class="p">$</span>                    ← 터미널(쉘)로 복귀
-<span class="p">$ exit</span>               ← ② 한 번 더 exit
-[터미널 창이 닫힘 — 이 웹 화면은 그대로. 버튼으로 새 터미널 열면 됨]
-</div>
-    <div class="term-note">🖥️ 터미널 모드는 실제 OS 터미널 창을 새로 엽니다 (로컬 전용 — SSH 원격에서는 챗 모드 사용).
-    claude에서 exit → 쉘로 복귀, 쉘에서 또 exit → 그 창만 닫히고 시스템에는 영향 없음.</div>
+    <div class="term-wrap">
+      <div class="panel-h">
+        <h3>🖥️ 터미널</h3>
+        <span class="hint">진짜 셸 (cwd=plugin_market) — claude·pm 직접 실행</span>
+        <span class="btn small">새 터미널</span>
+      </div>
+      <div class="term"><span class="p">$</span> pm list
+<span class="g">org-a/</span>  plugin-a 🟢   plugin-b 🟡   plugin-c ⚪
+<span class="g">org-b/</span>  plugin-x 🟢   plugin-y ⚪
+<span class="p">$</span> claude          ← 완전한 대화형 claude (플러그인 적용)
+╭──────────────────────────────╮
+│ ✻ Claude Code                │
+│   plugins: plugin-a, plugin-x│
+╰──────────────────────────────╯
+&gt; /plugin-a:review src/
+  ⏺ 실행 중...
+&gt; exit            ← claude 종료 → 셸 복귀
+<span class="p">$</span> <span class="cursor"></span></div>
+    </div>
+
   </div>
-
 </div>
 
 <script>
-  function mode(term) {
-    document.body.classList.toggle("term-mode", term);
-    document.getElementById("tab-chat").classList.toggle("on", !term);
-    document.getElementById("tab-term").classList.toggle("on", term);
-  }
+  // 사이드바 고정/미고정 — 목업이지만 실제로 동작
+  const app = document.getElementById("app");
+  const sb  = document.getElementById("sb");
+  const rail = document.getElementById("rail");
+  const pinBtn = document.getElementById("pinBtn");
+  let pinned = true, hideTimer = null;
+
+  pinBtn.addEventListener("click", () => {
+    pinned = !pinned;
+    pinBtn.classList.toggle("on", pinned);
+    pinBtn.textContent = pinned ? "📌 고정" : "📌 미고정";
+    app.classList.toggle("unpinned", !pinned);
+    sb.classList.remove("open");
+  });
+
+  // 미고정: 왼쪽 가장자리(레일) 호버 → 열림, 사이드바 벗어나면 300ms 후 닫힘
+  rail.addEventListener("mouseenter", () => { clearTimeout(hideTimer); sb.classList.add("open"); });
+  sb.addEventListener("mouseenter", () => clearTimeout(hideTimer));
+  sb.addEventListener("mouseleave", () => {
+    if (pinned) return;
+    hideTimer = setTimeout(() => sb.classList.remove("open"), 300);
+  });
 </script>
 
 </body>
