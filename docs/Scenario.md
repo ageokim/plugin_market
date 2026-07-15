@@ -149,7 +149,7 @@ sequenceDiagram
     SB->>GH: repo 목록 조회 (org별)
     GH-->>SB: #plugin #release 붙은 repo들
     SB-->>U: ② org별 그룹으로 목록 표시
-    U->>SB: ③ plugin-x [Install] 클릭
+    U->>SB: ③ plugin-x [설치] 클릭
     SB->>GH: git clone → plugins/org-b/plugin-x
     SB->>CL: marketplace 등록 + 활성화
     SB-->>U: ④ 배지가 미설치 → 사용중으로 변경
@@ -221,7 +221,7 @@ sequenceDiagram
     B-->>U: 로그인 창 없이 바로 메인 화면 ✅
     U->>B: (다 쓰고) 브라우저 창 닫기
     B--)FL: 닫힘 신호 + 생존 신호 중단
-    Note over FL: 10초 내 서버 자동 종료<br>(터미널에서 정리할 것 없음)
+    Note over FL: 10초 유예 후 서버 자동 종료<br>(닫힘 신호 유실 시 최대 ~20초 · 터미널 정리 불필요)
 ```
 
 - **켜기**: `./run.sh` 한 번 — 자동 로그인(저장된 credentials.json)으로 바로 메인.

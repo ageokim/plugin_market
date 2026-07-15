@@ -111,6 +111,7 @@
   .preset .pd { width:8px; height:8px; border-radius:50%; flex:none; }
   .preset .pd.on  { background:var(--green); box-shadow:0 0 6px var(--green); }
   .preset .pd.off { background:var(--dim); }
+  .preset .pd.partial { background:linear-gradient(135deg, var(--green) 50%, var(--dim) 50%); }
 
   .org-h { display:flex; align-items:center; gap:7px; padding:9px 14px;
            font-size:.78rem; font-weight:700; background:rgba(255,255,255,.02);
@@ -121,6 +122,8 @@
   .plugin { display:flex; align-items:center; gap:8px; padding:9px 14px 9px 20px;
             border-bottom:1px solid var(--line); transition:background .12s; }
   .plugin:hover { background:rgba(255,255,255,.025); }
+  .plugin .addp { opacity:0; transition:opacity .15s; }
+  .plugin:hover .addp { opacity:1; }
   .plugin .nm { font-size:.78rem; font-weight:600; }
   .plugin .desc { color:var(--dim); font-size:.66rem; flex:1;
                   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -247,25 +250,27 @@
           <span class="btn sm primary">전환</span><span class="btn ghost sm">⋯</span></div>
         <div class="preset"><span class="pd off"></span><span class="nm">문서작업 세트</span><span class="n">2개 · 꺼짐</span>
           <span class="btn sm">전환</span><span class="btn ghost sm">⋯</span></div>
+        <div class="preset"><span class="pd partial"></span><span class="nm">실험 세트</span><span class="n">4개 · 일부 켜짐</span>
+          <span class="btn sm">전환</span><span class="btn ghost sm">⋯</span></div>
       </div>
 
       <div class="org-h"><svg class="ic"><use href="#i-org"/></svg>org-a <span class="n">3개</span>
         <span class="sp"><span class="btn ghost sm"><svg class="ic" style="width:12px;height:12px"><use href="#i-refresh"/></svg></span><span class="btn ghost sm"><svg class="ic" style="width:12px;height:12px"><use href="#i-x"/></svg></span></span>
       </div>
-      <div class="plugin"><span class="nm">plugin-a</span><span class="desc">코드 리뷰 자동화</span>
+      <div class="plugin"><span class="nm">plugin-a</span><span class="desc">코드 리뷰 자동화</span><span class="btn ghost sm addp" title="preset에 추가"><svg class="ic" style="width:11px;height:11px"><use href="#i-plus"/></svg></span>
         <span class="st on"><span class="d"></span>사용중</span><span class="btn ghost sm">끄기</span><span class="btn ghost sm danger" title="삭제 (uninstall)"><svg class="ic" style="width:12px;height:12px"><use href="#i-trash"/></svg></span></div>
-      <div class="plugin"><span class="nm">plugin-b</span><span class="desc">API 클라이언트 생성</span>
+      <div class="plugin"><span class="nm">plugin-b</span><span class="desc">API 클라이언트 생성</span><span class="btn ghost sm addp" title="preset에 추가"><svg class="ic" style="width:11px;height:11px"><use href="#i-plus"/></svg></span>
         <span class="st off"><span class="d"></span>꺼짐</span><span class="btn ghost sm">켜기</span><span class="btn ghost sm danger" title="삭제 (uninstall)"><svg class="ic" style="width:12px;height:12px"><use href="#i-trash"/></svg></span></div>
-      <div class="plugin"><span class="nm">plugin-c</span><span class="desc">문서 템플릿</span>
+      <div class="plugin"><span class="nm">plugin-c</span><span class="desc">문서 템플릿</span><span class="btn ghost sm addp" title="preset에 추가"><svg class="ic" style="width:11px;height:11px"><use href="#i-plus"/></svg></span>
         <span class="st no"><span class="d"></span>미설치</span>
         <span class="btn sm primary"><svg class="ic" style="width:11px;height:11px"><use href="#i-dl"/></svg>설치</span></div>
 
       <div class="org-h"><svg class="ic"><use href="#i-org"/></svg>org-b <span class="n">5개</span>
         <span class="sp"><span class="btn ghost sm"><svg class="ic" style="width:12px;height:12px"><use href="#i-refresh"/></svg></span><span class="btn ghost sm"><svg class="ic" style="width:12px;height:12px"><use href="#i-x"/></svg></span></span>
       </div>
-      <div class="plugin"><span class="nm">plugin-x</span><span class="desc">로그 분석 workflow</span>
-        <span class="st on"><span class="d"></span>사용중</span><span class="btn ghost sm">끄기</span><span class="btn ghost sm danger" title="삭제 (uninstall)"><svg class="ic" style="width:12px;height:12px"><use href="#i-trash"/></svg></span></div>
-      <div class="plugin"><span class="nm">plugin-y</span><span class="desc">보안 점검 skill</span>
+      <div class="plugin"><span class="nm">plugin-x</span><span class="desc">로그 분석 workflow</span><span class="btn ghost sm addp" title="preset에 추가"><svg class="ic" style="width:11px;height:11px"><use href="#i-plus"/></svg></span>
+        <span class="st on"><span class="d"></span>사용중</span><span class="btn ghost sm" title="업데이트 (새 버전 있음)"><svg class="ic" style="width:12px;height:12px"><use href="#i-refresh"/></svg></span><span class="btn ghost sm">끄기</span><span class="btn ghost sm danger" title="삭제 (uninstall)"><svg class="ic" style="width:12px;height:12px"><use href="#i-trash"/></svg></span></div>
+      <div class="plugin"><span class="nm">plugin-y</span><span class="desc">보안 점검 skill</span><span class="btn ghost sm addp" title="preset에 추가"><svg class="ic" style="width:11px;height:11px"><use href="#i-plus"/></svg></span>
         <span class="st no"><span class="d"></span>미설치</span>
         <span class="btn sm primary"><svg class="ic" style="width:11px;height:11px"><use href="#i-dl"/></svg>설치</span></div>
 

@@ -91,8 +91,8 @@
 - [ ] `services/auth_service.py` — 로그인 검증(ID/PAT), credentials.json 자동 저장/로드, 시작 시 org 일괄 재검증, 미검증 세션(§10.2)
 - [ ] `services/org_service.py` — org 등록/삭제/재검증: URL 파싱 → 단일 host 정책 → 멤버십 게이트 → orgs.json (§10.2)
 - [ ] `services/catalog_service.py` — 스캔 → 보이는 repo 전부 저장(`has_tags` 플래그) → 출력 시 태그 필터, `--cached/--all` 동일 캐시 (§5·§7)
-- [ ] `services/install_service.py` — clone → 규약검사 → 등록 (실패 시 부분 clone 정리) / uninstall 역순 (§6.2)
-- [ ] `services/activation_service.py` — enable/disable: registry 위임 + 캐시 복사(§6.3)
+- [ ] `services/install_service.py` — clone → 규약검사 → 등록 (실패 시 부분 clone 정리) / uninstall 역순 / **update: git pull → 재등록(캐시 재복사 강제, 활성 상태 보존)** (§6.2)
+- [ ] `services/activation_service.py` — enable/disable: registry 위임 (§5)
 - [ ] `services/inspect_service.py` — 실측 대조 리포트, `--repair` (§7)
 - [ ] `services/preset_service.py` — CRUD + 일괄(enable은 자동 설치, 부분 실패 무중단·멤버별 결과 수집) + apply(전환) (§6.5·§8.5)
 - [ ] `pm/container.py` — 조립 루트: 설정 읽기 → 구현체 생성·주입 여기서만 (§2.2·§4)
@@ -106,7 +106,7 @@
 
 ### M4 — CLI + envcheck  ← 첫 실사용 지점
 
-- [ ] `pm/cli.py` + `pm/__main__.py` — §7 전 명령(org add/list/remove·list·install·uninstall·enable·disable·inspect·update·preset 6종·serve), 식별자 규칙(`org/name`, bare name은 유일할 때만), 종료코드 0/1/2, `--json`
+- [ ] `pm/cli.py` + `pm/__main__.py` — §7 전 명령(org add/list/remove·list·install·uninstall·enable·disable·inspect·update·preset 전 서브커맨드 10종(create·delete·add·remove·list·install·enable·disable·uninstall·apply, §7)·serve), 식별자 규칙(`org/name`, bare name은 유일할 때만), 종료코드 0/1/2, `--json`
 - [ ] `system/process.py` — cwd=ROOT subprocess, 외부 터미널 실행(보조) (§5)
 - [ ] `envcheck/checker.py` + `checks.py` — `Check` Protocol + §9.4 13항목, A(부트스트랩 게이트 1~5·13)/B(웹 6~12) 분리, 3.8·3.9 시 챗 폴백 정보성 안내
 - [ ] `scripts/bin/pm`·`pm.cmd` — shim: 자기 위치 ROOT → **`PM_HOME`을 자기 ROOT로 export**(상속분 덮어쓰기 — §9.3 "shim 자기위치 1순위"의 실현 수단) + PYTHONPATH 설정 → `exec "$PYTHON" -m pm "$@"`
