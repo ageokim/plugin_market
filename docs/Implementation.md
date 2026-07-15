@@ -18,8 +18,8 @@
 | M0 | 개발 기반 (requirements·lint·pytest) | ✅ |
 | M1 | 기반 모듈 (paths·errors·models·config·store) | ✅ |
 | M2 | GitHub 연동 (urls·client·rest_client·scanner) | ✅ |
-| M3 | 설치·등록 코어 (gitops·registry·services·container) | ⬜ |
-| M4 | CLI + envcheck — **첫 실사용 지점** | ⬜ |
+| M3 | 설치·등록 코어 (gitops·registry·services·container) | ✅ |
+| M4 | CLI + envcheck — **첫 실사용 지점** | 🔄 |
 | M5 | Flask API (REST·SSE 챗·WS 터미널·수명) | ⬜ |
 | M6 | 프론트 web/ | ⬜ |
 | M7 | launcher (run.sh/run.cmd·env/ 셋업) | ⬜ |
@@ -86,21 +86,21 @@
 
 ### M3 — 설치·등록 코어
 
-- [ ] `pm/gitops.py` — `GitRunner` Protocol + subprocess 구현: `clone/pull/head_commit`, 인증은 `GIT_CONFIG_*` env(§11), `GIT_TERMINAL_PROMPT=0`
-- [ ] `claudeplug/registry.py` — 하이브리드 등록(§6): marketplace.json 생성·갱신(이름충돌 시 신규만 `{org}-{name}` §6.2), `enabledPlugins` 토글(§8.7), 규약 검사(부록 A)
-- [ ] `services/auth_service.py` — 로그인 검증(ID/PAT), credentials.json 자동 저장/로드, 시작 시 org 일괄 재검증, 미검증 세션(§10.2)
-- [ ] `services/org_service.py` — org 등록/삭제/재검증: URL 파싱 → 단일 host 정책 → 멤버십 게이트 → orgs.json (§10.2)
-- [ ] `services/catalog_service.py` — 스캔 → 보이는 repo 전부 저장(`has_tags` 플래그) → 출력 시 태그 필터, `--cached/--all` 동일 캐시 (§5·§7)
-- [ ] `services/install_service.py` — clone → 규약검사 → 등록 (실패 시 부분 clone 정리) / uninstall 역순 / **update: git pull → 재등록(캐시 재복사 강제, 활성 상태 보존)** (§6.2)
-- [ ] `services/activation_service.py` — enable/disable: registry 위임 (§5)
-- [ ] `services/inspect_service.py` — 실측 대조 리포트, `--repair` (§7)
-- [ ] `services/preset_service.py` — CRUD + 일괄(enable은 자동 설치, 부분 실패 무중단·멤버별 결과 수집) + apply(전환) (§6.5·§8.5)
-- [ ] `pm/container.py` — 조립 루트: 설정 읽기 → 구현체 생성·주입 여기서만 (§2.2·§4)
+- [x] `pm/gitops.py` — `GitRunner` Protocol + subprocess 구현: `clone/pull/head_commit`, 인증은 `GIT_CONFIG_*` env(§11), `GIT_TERMINAL_PROMPT=0`
+- [x] `claudeplug/registry.py` — 하이브리드 등록(§6): marketplace.json 생성·갱신(이름충돌 시 신규만 `{org}-{name}` §6.2), `enabledPlugins` 토글(§8.7), 규약 검사(부록 A)
+- [x] `services/auth_service.py` — 로그인 검증(ID/PAT), credentials.json 자동 저장/로드, 시작 시 org 일괄 재검증, 미검증 세션(§10.2)
+- [x] `services/org_service.py` — org 등록/삭제/재검증: URL 파싱 → 단일 host 정책 → 멤버십 게이트 → orgs.json (§10.2)
+- [x] `services/catalog_service.py` — 스캔 → 보이는 repo 전부 저장(`has_tags` 플래그) → 출력 시 태그 필터, `--cached/--all` 동일 캐시 (§5·§7)
+- [x] `services/install_service.py` — clone → 규약검사 → 등록 (실패 시 부분 clone 정리) / uninstall 역순 / **update: git pull → 재등록(캐시 재복사 강제, 활성 상태 보존)** (§6.2)
+- [x] `services/activation_service.py` — enable/disable: registry 위임 (§5)
+- [x] `services/inspect_service.py` — 실측 대조 리포트, `--repair` (§7)
+- [x] `services/preset_service.py` — CRUD + 일괄(enable은 자동 설치, 부분 실패 무중단·멤버별 결과 수집) + apply(전환) (§6.5·§8.5)
+- [x] `pm/container.py` — 조립 루트: 설정 읽기 → 구현체 생성·주입 여기서만 (§2.2·§4)
 
 테스트:
 
-- [ ] 기록형 GitRunner + tmp 경로로: 설치→활성→비활성→삭제 전 흐름 / 이름충돌 rename / uninstall 시 enabledPlugins 정리 / update의 활성 상태 보존(§6.2) / preset 일괄의 부분 실패 계속 진행·apply의 "멤버 외 전부 끄기"
-- [ ] registry: marketplace.json이 Claude Code 스키마와 일치(§6.2 예시 대조)
+- [x] 기록형 GitRunner + tmp 경로로: 설치→활성→비활성→삭제 전 흐름 / 이름충돌 rename / uninstall 시 enabledPlugins 정리 / update의 활성 상태 보존(§6.2) / preset 일괄의 부분 실패 계속 진행·apply의 "멤버 외 전부 끄기"
+- [x] registry: marketplace.json이 Claude Code 스키마와 일치(§6.2 예시 대조)
 
 **DoD**: 임시 디렉토리 전 흐름 테스트 통과. 실 GitHub 없이 전부 fake로 검증됨.
 
