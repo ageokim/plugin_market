@@ -106,14 +106,14 @@
 
 ### M4 — CLI + envcheck  ← 첫 실사용 지점
 
-- [ ] `pm/cli.py` + `pm/__main__.py` — §7 전 명령(org add/list/remove·list·install·uninstall·enable·disable·inspect·update·preset 전 서브커맨드 10종(create·delete·add·remove·list·install·enable·disable·uninstall·apply, §7)·serve), 식별자 규칙(`org/name`, bare name은 유일할 때만), 종료코드 0/1/2, `--json`
-- [ ] `system/process.py` — cwd=ROOT subprocess, 외부 터미널 실행(보조) (§5)
-- [ ] `envcheck/checker.py` + `checks.py` — `Check` Protocol + §9.4 13항목, A(부트스트랩 게이트 1~5·13)/B(웹 6~12) 분리, 3.8·3.9 시 챗 폴백 정보성 안내
-- [ ] `scripts/bin/pm`·`pm.cmd` — shim: 자기 위치 ROOT → **`PM_HOME`을 자기 ROOT로 export**(상속분 덮어쓰기 — §9.3 "shim 자기위치 1순위"의 실현 수단) + PYTHONPATH 설정 → `exec "$PYTHON" -m pm "$@"`
+- [x] `pm/cli.py` + `pm/__main__.py` — §7 전 명령(org add/list/remove·list·install·uninstall·enable·disable·inspect·update·preset 전 서브커맨드 10종(create·delete·add·remove·list·install·enable·disable·uninstall·apply, §7)·serve), 식별자 규칙(`org/name`, bare name은 유일할 때만), 종료코드 0/1/2, `--json`
+- [x] `system/process.py` — cwd=ROOT subprocess, 외부 터미널 실행(보조) (§5)
+- [x] `envcheck/checker.py` + `checks.py` — `Check` Protocol + §9.4 13항목, A(부트스트랩 게이트 1~5·13)/B(웹 6~12) 분리, 3.8·3.9 시 챗 폴백 정보성 안내
+- [x] `scripts/bin/pm`·`pm.cmd` — shim: 자기 위치 ROOT → **`PM_HOME`을 자기 ROOT로 export**(상속분 덮어쓰기 — §9.3 "shim 자기위치 1순위"의 실현 수단) + PYTHONPATH 설정 → `exec "$PYTHON" -m pm "$@"`
 
 테스트:
 
-- [ ] cli: fake services로 인자 파싱·종료코드·bare name 모호 시 후보 목록 / envcheck: fake 환경으로 각 Check 통과·실패 경로
+- [x] cli: fake services로 인자 파싱·종료코드·bare name 모호 시 후보 목록 / envcheck: fake 환경으로 각 Check 통과·실패 경로
 - [ ] **E2E 수동**: 실 GitHub org 대상 `pm org add → list → install → enable → inspect` (테스트용 plugin repo 필요 — §4) 후 **새 claude 세션에서 플러그인 동작 확인**
 
 **DoD**: E2E 수동 검증 성공 — 이 시점부터 CLI만으로 실사용 가능.
