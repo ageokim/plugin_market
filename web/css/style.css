@@ -122,7 +122,9 @@ input:focus { border-color:var(--acc1); }
 /* preset 섹션 — 도출 뱃지 ●all-on / ◐partial / ○off (§6.5) */
 .preset { display:flex; align-items:center; gap:7px; padding:6px 2px; font-size:.76rem;
           position:relative; }
-.preset .nm { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.preset .nm { font-weight:600; overflow:hidden; text-overflow:ellipsis;
+              white-space:nowrap; max-width:45%; }
+.preset .btn, .preset .pd { flex:none; } /* 긴 이름에도 [전환]·⋯ 유지 */
 .preset .n { color:var(--dim); font-size:.66rem; margin-right:auto; white-space:nowrap; }
 .preset .pd { width:8px; height:8px; border-radius:50%; flex:none; }
 .preset .pd.on  { background:var(--green); box-shadow:0 0 6px var(--green); }
@@ -133,7 +135,10 @@ input:focus { border-color:var(--acc1); }
 .org-h { display:flex; align-items:center; gap:7px; padding:9px 14px;
          font-size:.78rem; font-weight:700; background:rgba(255,255,255,.02);
          border-bottom:1px solid var(--line); }
-.org-h .ic { width:13px; height:13px; color:var(--dim); }
+.org-h .ic { width:13px; height:13px; color:var(--dim); flex:none; }
+.org-h > span:first-of-type { overflow:hidden; text-overflow:ellipsis;
+                              white-space:nowrap; } /* 긴 org 이름 말줄임 */
+.org-h .sp, .org-h .tag { flex:none; }
 .org-h .n { color:var(--dim); font-weight:500; font-size:.68rem; }
 .org-h .sp { margin-left:auto; display:flex; }
 .tag { font-size:.6rem; font-weight:500; border:1px solid var(--line2); border-radius:999px;
@@ -144,9 +149,12 @@ input:focus { border-color:var(--acc1); }
 .plugin:hover { background:rgba(255,255,255,.025); }
 .plugin .addp { opacity:0; transition:opacity .15s; }
 .plugin:hover .addp { opacity:1; }
-.plugin .nm { font-size:.78rem; font-weight:600; white-space:nowrap; }
-.plugin .desc { color:var(--dim); font-size:.66rem; flex:1;
+.plugin .nm { font-size:.78rem; font-weight:600; white-space:nowrap;
+              max-width:42%; overflow:hidden; text-overflow:ellipsis; }
+.plugin .desc { color:var(--dim); font-size:.66rem; flex:1; min-width:14px;
                 overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* 이름·설명이 길어도 상태·버튼은 줄어들거나 잘리지 않는다 */
+.plugin .st, .plugin .btn, .plugin .acts { flex:none; }
 .plugin .acts { display:inline-flex; align-items:center; gap:4px; }
 .st { display:inline-flex; align-items:center; gap:5px; font-size:.64rem;
       font-weight:600; white-space:nowrap; }
