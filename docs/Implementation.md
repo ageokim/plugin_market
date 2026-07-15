@@ -21,7 +21,7 @@
 | M3 | 설치·등록 코어 (gitops·registry·services·container) | ✅ |
 | M4 | CLI + envcheck — **첫 실사용 지점** | 🔄 |
 | M5 | Flask API (REST·SSE 챗·WS 터미널·수명) | ✅ |
-| M6 | 프론트 web/ | ⬜ |
+| M6 | 프론트 web/ | 🔄 |
 | M7 | launcher (run.sh/run.cmd·env/ 셋업) | 🔄 |
 | M8 | 통합 검증 (시나리오 1~8 워크스루) | ⬜ |
 
@@ -137,19 +137,21 @@
 
 ### M6 — 프론트 web/
 
-- [ ] `web/vendor/xterm/` — xterm.js 로컬 동봉 (CDN 금지 §13.2)
-- [ ] `web/index.html` — 단일 페이지: 로그인 뷰 ↔ 메인 뷰(사이드바+챗+터미널). 디자인·동작은 [mockup/main.html](mockup/main.html)·[mockup/login.html](mockup/login.html) 이식 (§12.1·12.2)
-- [ ] `web/css/style.css` — 사이드바 고정/미고정, 탭 전환, 한국어 상태 라벨(사용중/꺼짐/미설치), preset 섹션 (§12.2)
-- [ ] `web/js/app.js` — 세션 확인→뷰 라우팅, heartbeat 시작, `sendBeacon` tab-close (§12.5)
-- [ ] `web/js/sidebar.js` — org 추가/삭제, 검색+칩, 플러그인 액션(삭제는 인라인 확인), preset 렌더·일괄 액션 (§12.2)
-- [ ] `web/js/chat.js` — SSE 수신 렌더, [새 대화], "새 대화부터 적용" 안내 (§12.3)
-- [ ] `web/js/term.js` — xterm 초기화, WS 연결(토큰), 리사이즈, 세션 종료 시 [새 터미널] (§12.4)
+- [x] `web/vendor/xterm/` — xterm.js 로컬 동봉 (CDN 금지 §13.2)
+- [x] `web/index.html` — 단일 페이지: 로그인 뷰 ↔ 메인 뷰(사이드바+챗+터미널). 디자인·동작은 [mockup/main.html](mockup/main.html)·[mockup/login.html](mockup/login.html) 이식 (§12.1·12.2)
+- [x] `web/css/style.css` — 사이드바 고정/미고정, 탭 전환, 한국어 상태 라벨(사용중/꺼짐/미설치), preset 섹션 (§12.2)
+- [x] `web/js/app.js` — 세션 확인→뷰 라우팅, heartbeat 시작, `sendBeacon` tab-close (§12.5)
+- [x] `web/js/sidebar.js` — org 추가/삭제, 검색+칩, 플러그인 액션(삭제는 인라인 확인), preset 렌더·일괄 액션 (§12.2)
+- [x] `web/js/chat.js` — SSE 수신 렌더, [새 대화], "새 대화부터 적용" 안내 (§12.3)
+- [x] `web/js/term.js` — xterm 초기화, WS 연결(토큰), 리사이즈, 세션 종료 시 [새 터미널] (§12.4)
 
 테스트: 로직은 services/API에 있으므로(§13.2) 프론트는 브라우저 수동 스모크.
 
 - [ ] 시나리오 3(로그인)·4(설치)·5(claude 탭 전환·새 대화) 브라우저 워크스루
 
 **DoD**: 브라우저에서 시나리오 3·4·5 동작. JS에 도메인 로직 없음(전부 API 호출).
+
+> 2026-07-16 구현 완료(1,343줄) — 자산 서빙·API 배선·모듈 파싱 검증됨. 브라우저 워크스루는 실 GitHub 자격 필요 → M4 E2E와 함께 수행.
 
 ### M7 — launcher
 
@@ -160,7 +162,7 @@
 테스트 (수동):
 
 - [ ] 클린 환경(패키지 미설치)에서 `./run.sh` 원샷: 셋업→체크→브라우저까지 / 재실행 시 pip 생략(멱등 §9.0)
-- [ ] 브라우저 창 닫기 → grace 후 서버 종료 실측 / 탭 새로고침·일시 백그라운드에서는 **종료되지 않음** (§12.5)
+- [x] 브라우저 창 닫기 → grace 후 서버 종료 실측 / 탭 새로고침·일시 백그라운드에서는 **종료되지 않음** (§12.5)
 
 **DoD**: 클린 환경 원샷 기동 + 창 닫기=종료 실측 확인.
 

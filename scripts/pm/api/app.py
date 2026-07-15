@@ -100,8 +100,24 @@ def create_app(
     return app
 
 
+def _skip_loopback_reverse_dns() -> None:
+    """werkzeug가 bind 시 getfqdn을 호출하는데, 일부 macOS/DNS 환경에서
+    루프백 역방향 조회가 ~35초 스톨한다(실측). 루프백은 조회가 무의미하므로
+    즉답으로 대체한다 — 서버 프로세스 전용 패치."""
+    import socket
+    real_getfqdn = socket.getfqdn
+
+    def patched(name: str = "") -> str:
+        if name in ("", "127.0.0.1", "::1", "localhost"):
+            return "localhost"
+        return real_getfqdn(name)
+
+    socket.getfqdn = patched
+
+
 def serve(container: Any, port: Optional[int] = None) -> None:
     """`pm serve` 진입점 (§12.5) — launcher가 백그라운드로 띄운다."""
+    _skip_loopback_reverse_dns()
     lifecycle = LifecycleManager()
     app = create_app(container, lifecycle=lifecycle)
     terminal_manager = app.extensions["pm"]["terminal_manager"]
