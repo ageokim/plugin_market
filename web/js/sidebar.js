@@ -44,8 +44,10 @@ export function initSidebar(ctx) {
     return b;
   }
 
+  let onPopClose = null; // 팝업이 닫힐 때 1회 실행 (멤버 편집 후 재렌더용)
   function closePop() {
     if (openPop) { openPop.remove(); openPop = null; }
+    if (onPopClose) { const fn = onPopClose; onPopClose = null; fn(); }
   }
   document.addEventListener("click", (e) => {
     if (openPop && !openPop.contains(e.target)) closePop();
@@ -291,6 +293,8 @@ export function initSidebar(ctx) {
       b.addEventListener("click", (e) => { e.stopPropagation(); fn(); });
       pop.appendChild(b);
     };
+    item("멤버 편집…", () => renderMemberEdit(pop, ps.name));
+    pop.appendChild(el("div", "sep"));
     item("일괄 설치", () => { closePop(); presetBatch(ps.name, "install"); });
     item("일괄 켜기", () => { closePop(); presetBatch(ps.name, "enable"); });
     item("일괄 끄기", () => { closePop(); presetBatch(ps.name, "disable"); });
@@ -317,6 +321,36 @@ export function initSidebar(ctx) {
     });
     row.appendChild(pop);
     openPop = pop;
+  }
+
+  // ⋯ 메뉴의 멤버 편집 — 카탈로그 전체에서 ✓ 토글, 연속 추가 가능 (§12.2)
+  function renderMemberEdit(pop, presetName) {
+    onPopClose = render; // 닫힐 때 행 배지·멤버 수 갱신
+    pop.textContent = "";
+    const ps = presets.find((x) => x.name === presetName);
+    if (!ps) { closePop(); return; }
+    pop.appendChild(el("div", "pop-h", `'${ps.name}' 멤버 편집 — 클릭해서 넣고 빼기`));
+    if (!plugins.length) {
+      pop.appendChild(el("div", "pop-empty",
+        "카탈로그가 비어 있습니다 — 위의 org 추가로 organization을 등록하면 플러그인이 나타납니다"));
+      return;
+    }
+    const list = el("div", "pop-scroll");
+    plugins.forEach((p) => {
+      const has = ps.members.includes(p.ref);
+      const b = textBtn((has ? "✓ " : "+ ") + p.ref, has ? "sel" : "");
+      b.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        try {
+          await ctx.api(`/api/presets/${enc(ps.name)}/members`,
+            { method: "POST", body: { ref: p.ref, op: has ? "remove" : "add" } });
+          await loadPresets();
+          renderMemberEdit(pop, presetName); // 팝업 유지한 채 갱신 — 연속 편집
+        } catch (ex) { fail(ex); }
+      });
+      list.appendChild(b);
+    });
+    pop.appendChild(list);
   }
 
   // + preset 팝업 — 멤버 추가/제거 토글

@@ -330,3 +330,9 @@ details.inspect summary { display:flex; align-items:center; gap:6px; cursor:poin
 .wf-time { margin-left:auto; font-size:.66rem; color:var(--dim);
            white-space:nowrap; flex:none; }
 .wf-step.running .wf-time { color:var(--acc1); }
+
+/* preset 멤버 편집 팝업 (§12.2) */
+.pop .pop-h { font-size:.68rem; color:var(--muted); padding:6px 10px 3px;
+              white-space:nowrap; }
+.pop-scroll { max-height:220px; overflow-y:auto; display:flex; flex-direction:column; }
+.pop button.sel { color:var(--green); }
