@@ -21,6 +21,7 @@ from pm.api.plugins import make_plugins_bp
 from pm.api.presets import make_presets_bp
 from pm.api.terminal import TokenStore, make_terminal_bp, \
     register_terminal_ws
+from pm.api.workflow import WorkflowStore, make_workflow_bp
 from pm.errors import AuthError, GitHubError, PmError
 
 _HOST = "127.0.0.1"  # §11 — 변경 옵션 없음 (의도된 하드코딩)
@@ -32,6 +33,7 @@ def create_app(
     chat_backend: Any = None,
     terminal_manager: Any = None,
     token_store: Optional[TokenStore] = None,
+    workflow_store: Optional[WorkflowStore] = None,
 ) -> Flask:
     """blueprint 조립 — 각 bp는 필요한 서비스만 받는다(ISP §2.2).
 
@@ -59,6 +61,8 @@ def create_app(
 
     lifecycle = lifecycle if lifecycle is not None else LifecycleManager()
     token_store = token_store if token_store is not None else TokenStore()
+    workflow_store = workflow_store if workflow_store is not None \
+        else WorkflowStore()
     if chat_backend is None:
         chat_backend = build_chat_backend(str(container.paths.root))
     if terminal_manager is None:
@@ -82,6 +86,7 @@ def create_app(
     app.register_blueprint(
         make_terminal_bp(container.auth, token_store), **prefix)
     app.register_blueprint(make_lifecycle_bp(lifecycle), **prefix)
+    app.register_blueprint(make_workflow_bp(workflow_store), **prefix)
 
     try:
         from flask_sock import Sock
@@ -96,6 +101,7 @@ def create_app(
         "lifecycle": lifecycle,
         "terminal_manager": terminal_manager,
         "token_store": token_store,
+        "workflow_store": workflow_store,
     }
     return app
 
