@@ -4,6 +4,7 @@
 import { initSidebar } from "./sidebar.js";
 import { initChat } from "./chat.js";
 import { initTerm } from "./term.js";
+import { initWorkflow } from "./workflow.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -113,32 +114,48 @@ async function recheckSession() {
   } catch { /* 401은 래퍼가 처리 */ }
 }
 
-// ── 메인 상단: 세그먼트 탭 [Claude|터미널] + 액션 버튼 (§12.1) ──
+// ── 메인 상단: 세그먼트 탭 [Claude|터미널|Workflow] + 액션 버튼 (§12.1) ──
+const TABS = {
+  chat: {
+    btn: "tabChat", view: "view-chat", action: "새 대화",
+    hint: "cwd=plugin_market · pm 명령도 입력 가능 (list·enable·disable·inspect)",
+  },
+  term: {
+    btn: "tabTerm", view: "view-term", action: "새 터미널",
+    hint: "진짜 셸 — claude·pm 직접 실행 · exit로 이 세션만 종료",
+  },
+  flow: {
+    btn: "tabFlow", view: "view-flow", action: "기록 지우기",
+    hint: "claude 실행 타임라인 — 챗·내장 터미널 세션 모두 자동 수집 (§12.7)",
+  },
+};
+
 function switchTab(view) {
   state.view = view;
-  const isChat = view === "chat";
-  $("view-chat").classList.toggle("on", isChat);
-  $("view-term").classList.toggle("on", !isChat);
-  $("tabChat").classList.toggle("on", isChat);
-  $("tabTerm").classList.toggle("on", !isChat);
-  $("actionTxt").textContent = isChat ? "새 대화" : "새 터미널";
-  $("hintTxt").textContent = isChat
-    ? "cwd=plugin_market · pm 명령도 입력 가능 (list·enable·disable·inspect)"
-    : "진짜 셸 — claude·pm 직접 실행 · exit로 이 세션만 종료";
-  if (!isChat) term.ensure(); // 터미널 탭 첫 진입 시 세션 생성 (§12.4)
+  for (const [key, tab] of Object.entries(TABS)) {
+    $(tab.btn).classList.toggle("on", key === view);
+    $(tab.view).classList.toggle("on", key === view);
+  }
+  $("actionTxt").textContent = TABS[view].action;
+  $("hintTxt").textContent = TABS[view].hint;
+  if (view === "term") term.ensure(); // 첫 진입 시 세션 생성 (§12.4)
+  if (view === "flow") flow.ensure(); // 첫 진입 시 스트림 구독 (§12.7)
 }
 
 // ── 모듈 조립 (의존성 주입 — 순환 임포트 방지) ──
 const ctx = { api, toast, isLocked: () => state.locked, authFail: onAuthFail, recheckSession };
 const chat = initChat(ctx);
 const term = initTerm(ctx);
+const flow = initWorkflow(ctx);
 const sidebar = initSidebar(ctx);
 
-$("tabChat").addEventListener("click", () => switchTab("chat"));
-$("tabTerm").addEventListener("click", () => switchTab("term"));
+for (const [key, tab] of Object.entries(TABS)) {
+  $(tab.btn).addEventListener("click", () => switchTab(key));
+}
 $("actionBtn").addEventListener("click", () => {
   if (state.view === "chat") chat.newChat();
-  else term.newTerm();
+  else if (state.view === "term") term.newTerm();
+  else flow.clearAll();
 });
 
 // ── 로그인 (§12.6): ID/PWD(PAT) → POST /api/login ──
@@ -177,6 +194,7 @@ $("logoutBtn").addEventListener("click", async () => {
   try { await api("/api/logout", { method: "POST" }); } catch { /* 무시 */ }
   chat.reset();
   term.reset();
+  flow.reset();
   setLocked(false);
   showLogin(state.id, "");
 });

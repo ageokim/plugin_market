@@ -144,6 +144,7 @@
         <div class="seg">
           <button id="tabChat" class="on" type="button"><svg class="ic" style="width:13px;height:13px"><use href="#i-spark"/></svg>Claude</button>
           <button id="tabTerm" type="button"><svg class="ic" style="width:13px;height:13px"><use href="#i-term"/></svg>터미널</button>
+          <button id="tabFlow" type="button"><svg class="ic" style="width:13px;height:13px"><use href="#i-act"/></svg>Workflow</button>
         </div>
         <button class="btn sm primary needs-auth" id="actionBtn" type="button"><svg class="ic" style="width:11px;height:11px"><use href="#i-plus"/></svg><span id="actionTxt">새 대화</span></button>
         <span class="hint" id="hintTxt"></span>
@@ -167,6 +168,16 @@
             <button class="btn sm primary" id="termOverlayBtn" type="button"><svg class="ic" style="width:11px;height:11px"><use href="#i-plus"/></svg>새 터미널</button>
           </div>
         </div>
+      </div>
+
+      <!-- Workflow 타임라인 뷰 (§12.7) -->
+      <div class="view" id="view-flow">
+        <div class="wf-bar">
+          <span class="wf-chip on" id="wfFilterAll">전체</span>
+          <span class="wf-chip" id="wfFilterPlugin">플러그인만</span>
+          <label class="wf-auto"><input type="checkbox" id="wfAutoScroll" checked> 자동 스크롤</label>
+        </div>
+        <div class="wf-list" id="wfList"></div>
       </div>
     </div>
   </div>

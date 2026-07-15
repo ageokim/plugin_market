@@ -184,17 +184,19 @@
 
 ### M9 — Workflow 탭 (§12.7, 설계 2026-07-16 확정)
 
-- [ ] `api/workflow.py` — `WorkflowStore`(링버퍼 20세션·500step, LIFO 짝맞추기, 서브에이전트 depth, SSE 팬아웃·배압) + `POST /events`·`GET /sessions`·`GET /stream`·`DELETE` (§12.7)
-- [ ] `hooks/report_workflow.sh` — 관찰 전용 리포터(포트 도출 §2.3, 항상 exit 0) + `.claude/settings.json` 신설(hook 9종, async)
-- [ ] `web/js/workflow.js` + index.html 탭·패널 + app.js switchTab 3분기 + style.css 타임라인(펄스·✓·✗·들여쓰기·플러그인 배지·필터 칩)
-- [ ] 테스트: store 단위(짝맞추기·절삭·팬아웃·overflow 격리) + API 계약(202·400·필드 누락 내성·DELETE) — SSE 스트림은 store 단위로 대체(무한 응답)
+- [x] `api/workflow.py` — `WorkflowStore`(링버퍼 20세션·500step, LIFO 짝맞추기, 서브에이전트 depth, SSE 팬아웃·배압) + `POST /events`·`GET /sessions`·`GET /stream`·`DELETE` (§12.7)
+- [x] `hooks/report_workflow.sh` — 관찰 전용 리포터(포트 도출 §2.3, 항상 exit 0) + `.claude/settings.json` 신설(hook 9종, async)
+- [x] `web/js/workflow.js` + index.html 탭·패널 + app.js switchTab 3분기 + style.css 타임라인(펄스·✓·✗·들여쓰기·플러그인 배지·필터 칩)
+- [x] 테스트: store 단위(짝맞추기·절삭·팬아웃·overflow 격리) + API 계약(202·400·필드 누락 내성·DELETE) — SSE 스트림은 store 단위로 대체(무한 응답)
 
 검증 (수동):
 
-- [ ] curl: 예시 이벤트 POST → sessions 반영 → `curl -N /api/workflow/stream` 2창 동시 수신
+- [x] curl: 예시 이벤트 POST → sessions 반영 → `curl -N /api/workflow/stream` 2창 동시 수신
 - [ ] 실사용: 챗에서 도구 쓰는 요청 → 탭에서 펄스→✓ / 터미널 대화형 claude가 별도 세션 카드로 표시(첫 실행 hook 신뢰 1회) / 서버 꺼진 상태에서 claude 지연 없음
 
 **DoD**: 계약 테스트 통과 + 실사용 스모크에서 챗·터미널 세션이 모두 타임라인에 잡힘.
+
+> 2026-07-16 구현 완료 — 테스트 15개(총 287) + hook 스크립트 경유 시나리오 재생(depth·플러그인 배지·SSE 팬아웃 실측) + **실제 Claude Code 세션의 hook이 라이브로 수집됨을 확인**(개발 세션 자체가 포착됨). 브라우저 UI 워크스루(펄스 등)는 사용자 수동 확인 항목.
 
 ## 4. 미결정·차단 요소
 

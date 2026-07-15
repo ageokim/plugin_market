@@ -279,3 +279,54 @@ details.inspect summary { display:flex; align-items:center; gap:6px; cursor:poin
          box-shadow:0 10px 30px rgba(0,0,0,.5); animation:toast-in .2s ease;
          white-space:pre-wrap; word-break:break-word; }
 .toast.err { border-color:rgba(248,113,113,.5); color:#fca5a5; }
+
+/* ── Workflow 타임라인 (§12.7) ────────────────────────── */
+.wf-bar { display:flex; align-items:center; gap:8px; padding:10px 14px 4px; }
+.wf-chip { font-size:.72rem; color:var(--muted); border:1px solid var(--line2);
+           border-radius:99px; padding:3px 12px; cursor:pointer; transition:all .15s; }
+.wf-chip:hover { color:var(--text); }
+.wf-chip.on { background:var(--grad); color:#fff; border-color:transparent; }
+.wf-auto { margin-left:auto; font-size:.7rem; color:var(--dim); display:flex;
+           align-items:center; gap:5px; cursor:pointer; }
+.wf-list { flex:1; overflow-y:auto; padding:8px 14px 16px; display:flex;
+           flex-direction:column; gap:12px; }
+.wf-empty { color:var(--dim); font-size:.74rem; padding:6px 2px; }
+.wf-empty.big { text-align:center; padding:60px 20px; line-height:1.8; }
+
+.wf-card { background:var(--panel); border:1px solid var(--line);
+           border-radius:14px; padding:12px 14px; }
+.wf-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.wf-state { width:9px; height:9px; border-radius:50%; flex:none; }
+.wf-state.active { background:var(--green); box-shadow:0 0 8px var(--green); }
+.wf-state.idle { background:var(--amber); }
+.wf-state.ended { background:var(--dim); }
+.wf-title { font-weight:700; font-size:.8rem; letter-spacing:-.01em; }
+.wf-statetxt { margin-left:auto; font-size:.68rem; color:var(--muted); }
+
+.wf-line { border-left:1px solid var(--line2); margin-left:4px; padding-left:12px;
+           display:flex; flex-direction:column; gap:6px; }
+.wf-step { display:flex; align-items:baseline; gap:8px; font-size:.76rem;
+           min-width:0; }
+.wf-dot { width:16px; height:16px; border-radius:50%; flex:none; font-size:.6rem;
+          display:inline-flex; align-items:center; justify-content:center;
+          border:1px solid var(--line2); color:var(--muted);
+          transform:translateY(3px); background:var(--bg); margin-left:-21px; }
+.wf-dot.done { border-color:var(--green); color:var(--green); }
+.wf-dot.failed { border-color:var(--red); color:var(--red); }
+@keyframes wf-pulse {
+  0%,100% { box-shadow:0 0 0 0 rgba(99,102,241,.6); }
+  50% { box-shadow:0 0 0 5px rgba(99,102,241,0); }
+}
+.wf-dot.running { border-color:var(--acc1); background:var(--acc1);
+                  animation:wf-pulse 1.4s ease infinite; }
+.wf-body { display:flex; align-items:baseline; gap:7px; min-width:0; flex:1; }
+.wf-name { font-weight:600; white-space:nowrap; }
+.wf-step.plugin .wf-name { background:var(--grad); -webkit-background-clip:text;
+                           background-clip:text; color:transparent; }
+.wf-plugin-badge { font-size:.62rem; border:1px solid var(--acc1); color:var(--acc1);
+                   border-radius:99px; padding:0 7px; white-space:nowrap; }
+.wf-sum { color:var(--muted); overflow:hidden; text-overflow:ellipsis;
+          white-space:nowrap; }
+.wf-time { margin-left:auto; font-size:.66rem; color:var(--dim);
+           white-space:nowrap; flex:none; }
+.wf-step.running .wf-time { color:var(--acc1); }
