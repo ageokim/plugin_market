@@ -17,7 +17,7 @@
 |---|---|---|
 | M0 | 개발 기반 (requirements·lint·pytest) | ✅ |
 | M1 | 기반 모듈 (paths·errors·models·config·store) | ✅ |
-| M2 | GitHub 연동 (urls·client·rest_client·scanner) | ⬜ |
+| M2 | GitHub 연동 (urls·client·rest_client·scanner) | ✅ |
 | M3 | 설치·등록 코어 (gitops·registry·services·container) | ⬜ |
 | M4 | CLI + envcheck — **첫 실사용 지점** | ⬜ |
 | M5 | Flask API (REST·SSE 챗·WS 터미널·수명) | ⬜ |
@@ -72,15 +72,15 @@
 
 > ⚠ 착수 전 §15 #1(플러그인 repo 규약 — 부록 A 확정) 해결 — §4 참고.
 
-- [ ] `github/urls.py` — `parse_host`, `parse_target`(dot-heuristic — 계정명에 점 불가 §10), `ApiUrlBuilder`(github.com→`api.github.com`, GHES→`https://{host}/api/v3`)
-- [ ] `github/client.py` — `GitHubClient` Protocol: `verify_token/resolve_target/fetch_repos/check_org_membership` (§5)
-- [ ] `github/rest_client.py` — requests 구현체. 생성자 주입: `api_base_url/token_provider/ca_bundle`(§5). **3-way repo listing**(org=`type=all`, 타인=`type=owner`, 본인=`/user/repos?type=owner` §10), Link 헤더 페이지네이션 per_page=100, 멤버십 `state=active` 게이트(§10.2)
-- [ ] `github/scanner.py` — description이 설정된 태그(`plugin_tags`)를 **모두** 포함하는 repo 필터 (§5, 부록 A.1)
+- [x] `github/urls.py` — `parse_host`, `parse_target`(dot-heuristic — 계정명에 점 불가 §10), `ApiUrlBuilder`(github.com→`api.github.com`, GHES→`https://{host}/api/v3`)
+- [x] `github/client.py` — `GitHubClient` Protocol: `verify_token/resolve_target/fetch_repos/check_org_membership` (§5)
+- [x] `github/rest_client.py` — requests 구현체. 생성자 주입: `api_base_url/token_provider/ca_bundle`(§5). **3-way repo listing**(org=`type=all`, 타인=`type=owner`, 본인=`/user/repos?type=owner` §10), Link 헤더 페이지네이션 per_page=100, 멤버십 `state=active` 게이트(§10.2)
+- [x] `github/scanner.py` — description이 설정된 태그(`plugin_tags`)를 **모두** 포함하는 repo 필터 (§5, 부록 A.1)
 
 테스트:
 
-- [ ] urls: github.com/GHES/`org/repo` URL/점 포함 host 케이스 / rest_client: fake `requests` 응답으로 3-way 분기·페이지네이션·401/403 → `GitHubError` / scanner: 태그 부분 일치는 탈락
-- [ ] 실 github.com 수동 스모크 1회 (PAT로 본인 계정 repo 목록 — private 포함 확인)
+- [x] urls: github.com/GHES/`org/repo` URL/점 포함 host 케이스 / rest_client: fake `requests` 응답으로 3-way 분기·페이지네이션·401/403 → `GitHubError` / scanner: 태그 부분 일치는 탈락
+- [x] 실 github.com 수동 스모크 1회 — 무인증·공개 계정으로 수행(2026-07-15, per_page=3 페이지네이션 실검증). PAT·private 확인은 credentials 생기는 M4 E2E에 포함
 
 **DoD**: fake 테스트 전 통과 + 수동 스모크 성공.
 

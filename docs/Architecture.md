@@ -685,7 +685,7 @@ run.sh / run.cmd  (환경 체크 통과 후)
 
 | # | 항목 | 권장 기본값 |
 |---|---|---|
-| 1 | 플러그인 repo 규약 확정 | 부록 A 초안을 org 표준으로 확정 후 구현 착수 (등록 대상 경로의 선행 조건) |
+| 1 | 플러그인 repo 규약 확정 | **결정됨(2026-07-15)** — 부록 A를 표준으로 확정, M2 구현 착수. 미준수 repo adapter 여부는 후속 |
 | 2 | Python 최소 버전 | **결정됨 — 3.8** (코어·Flask·터미널 전체). `claude-agent-sdk`만 3.10+ 요구 → 3.8·3.9는 챗을 subprocess 폴백으로 제공(§12.3), 설치는 environment marker로 생략(§9.2) |
 | 3 | `#release` 의미 | 존재 표시로 시작. 스키마에 `ref` 필드 여지만 두고 `pm install name@ref`는 후속 |
 | 4 | 토큰 저장 | **결정됨** — `data/credentials.json` 자동 저장(600, 비추적, §8.4). OS keyring 전환은 후속 opt-in |
@@ -725,7 +725,7 @@ plugin_market/
 
 ---
 
-## 부록 A. 플러그인 repo 표준 규약 (초안)
+## 부록 A. 플러그인 repo 표준 규약 (확정 2026-07-15, §15 #1)
 
 plugin으로 인식·설치되기 위한 repo 요건:
 
