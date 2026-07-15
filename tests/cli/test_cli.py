@@ -167,6 +167,15 @@ def test_update_without_arg_updates_all_installed(container, capsys):
     assert ("update", "org-a", "b") in calls
 
 
-def test_serve_unimplemented_exits_1(container, capsys):
-    assert main(["serve"], container=container) == 1
-    assert "M5" in capsys.readouterr().err
+def test_inspect_env_bootstrap_gate(container, capsys):
+    """--bootstrap은 §9.4 A(6항목)만 돌리고 통과 여부를 종료코드로 낸다."""
+    import json as _json
+    import sys as _sys
+    container.paths.env_file.parent.mkdir(parents=True, exist_ok=True)
+    container.paths.env_file.write_text(
+        _json.dumps({"python": _sys.executable}), encoding="utf-8")
+    code = main(["inspect", "--env", "--bootstrap"], container=container)
+    out = capsys.readouterr().out
+    assert code == 0
+    assert out.count("[PASS]") + out.count("[FAIL]") == 6  # A단계만
+    assert "git" not in out  # B(웹) 항목은 제외

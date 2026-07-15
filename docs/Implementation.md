@@ -22,7 +22,7 @@
 | M4 | CLI + envcheck — **첫 실사용 지점** | 🔄 |
 | M5 | Flask API (REST·SSE 챗·WS 터미널·수명) | ✅ |
 | M6 | 프론트 web/ | ⬜ |
-| M7 | launcher (run.sh/run.cmd·env/ 셋업) | ⬜ |
+| M7 | launcher (run.sh/run.cmd·env/ 셋업) | 🔄 |
 | M8 | 통합 검증 (시나리오 1~8 워크스루) | ⬜ |
 
 상태: ⬜ 미착수 · 🔄 진행중 · ✅ 완료(DoD 통과)
@@ -153,9 +153,9 @@
 
 ### M7 — launcher
 
-- [ ] `env/` 셋업 스크립트(OS별) — 인터프리터 탐색·`data/env.json` 고정(§9.1), pip 멱등 설치(§9.0·9.2), PATH 등록(Linux 심볼릭 링크 / Windows `SetEnvironmentVariable` — setx 금지 §9.3)
-- [ ] `run.sh` — 셋업 → 부트스트랩 게이트(§9.4 A) → `"$PYTHON" -m pm serve &` → 브라우저 오픈 (§12.5)
-- [ ] `run.cmd` — 동일 흐름, `powershell -NoProfile -ExecutionPolicy Bypass` 진입(§9.3)
+- [x] `env/` 셋업 스크립트(OS별) — 인터프리터 탐색·`data/env.json` 고정(§9.1), pip 멱등 설치(§9.0·9.2), PATH 등록(Linux 심볼릭 링크 / Windows `SetEnvironmentVariable` — setx 금지 §9.3)
+- [x] `run.sh` — 셋업 → 부트스트랩 게이트(§9.4 A) → `"$PYTHON" -m pm serve &` → 브라우저 오픈 (§12.5)
+- [x] `run.cmd` — 동일 흐름, `powershell -NoProfile -ExecutionPolicy Bypass` 진입(§9.3)
 
 테스트 (수동):
 

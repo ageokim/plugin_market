@@ -57,6 +57,9 @@ def build_parser() -> argparse.ArgumentParser:
     inspect.add_argument("identifier", nargs="?")
     inspect.add_argument("--env", action="store_true", dest="env_check",
                          help="환경 체크리스트 (§9.4)")
+    inspect.add_argument("--bootstrap", action="store_true",
+                         help="--env를 부트스트랩 게이트(§9.4 A)로 한정 "
+                              "— launcher 전용")
     inspect.add_argument("--repair", action="store_true")
     inspect.add_argument("--json", action="store_true", dest="as_json")
 
@@ -262,10 +265,11 @@ def _cmd_plugin_action(container: Any, args: argparse.Namespace) -> int:
 
 def _cmd_inspect(container: Any, args: argparse.Namespace) -> int:
     if args.env_check:
-        from pm.envcheck.checker import EnvCheckRunner
+        from pm.envcheck.checker import BOOTSTRAP, EnvCheckRunner
         from pm.envcheck.checks import build_checks
+        stage = BOOTSTRAP if args.bootstrap else None
         results = EnvCheckRunner(
-            build_checks(container.paths, container.config)).run()
+            build_checks(container.paths, container.config)).run(stage)
         if args.as_json:
             _emit_json([r.__dict__ for r in results])
         else:
