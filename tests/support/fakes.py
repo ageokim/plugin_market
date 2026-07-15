@@ -1,15 +1,27 @@
-"""CLI 테스트용 fake container — 실제 services 없이 계약만 흉내(§13.3)."""
+"""공용 fake services — CLI(M4)·API(M5) 계약 테스트가 공유 (§13.3).
+
+루트 conftest가 이 디렉토리를 sys.path에 넣는다 → `from fakes import …`.
+"""
 
 from __future__ import annotations
 
 from typing import Dict, List, Optional, Tuple
 
-import pytest
-
+from pm.errors import AuthError
 from pm.models import Org, OrgKind, Plugin, PluginState, Preset, utc_now_iso
+from pm.services.auth_service import LoginResult
 from pm.services.inspect_service import PluginStatus
 from pm.services.install_service import InstallResult
 from pm.services.preset_service import MemberResult, PresetBadge
+
+
+def make_plugin(org: str, name: str, description: str = "",
+                has_tags: bool = True) -> Plugin:
+    return Plugin(name=name, org=org,
+                  github_addr=f"https://ghes/{org}/{name}",
+                  clone_url=f"https://ghes/{org}/{name}.git",
+                  description=description, private=False,
+                  has_tags=has_tags)
 
 
 class FakeCatalogService:
@@ -82,8 +94,11 @@ class FakeOrgService:
     def __init__(self) -> None:
         self.orgs: List[Org] = []
         self.removed: List[str] = []
+        self.add_error: Optional[Exception] = None
 
     def add(self, url_text: str) -> Org:
+        if self.add_error is not None:
+            raise self.add_error
         name = url_text.rstrip("/").rsplit("/", 1)[-1]
         org = Org(name=name, url=url_text, host="ghes", kind=OrgKind.ORG,
                   added_at=utc_now_iso())
@@ -153,20 +168,125 @@ class FakePresetService:
     enable = disable = uninstall = apply = install
 
 
-class FakeContainer:
-    """cli.main(container=...)에 주입되는 최소 조립체."""
+class FakeAuthService:
+    """§10.2 로그인·미검증 세션 흐름의 계약만 흉내."""
 
-    def __init__(self, tmp_paths, config=None) -> None:
+    def __init__(self) -> None:
+        self.saved: Optional[Dict[str, str]] = None
+        self.unverified = False
+        self.login_error: Optional[Exception] = None
+        self.logged_out = False
+
+    def login(self, user_id: str, token: str) -> LoginResult:
+        if self.login_error is not None:
+            raise self.login_error
+        if self.unverified:
+            return LoginResult(verified=False)
+        self.saved = {"id": user_id, "token": token}
+        return LoginResult(verified=True, login=user_id, first_save=True)
+
+    def load_saved(self) -> Optional[Dict[str, str]]:
+        return self.saved
+
+    def current_id(self) -> Optional[str]:
+        return self.saved["id"] if self.saved else None
+
+    def current_token(self) -> Optional[str]:
+        return self.saved["token"] if self.saved else None
+
+    def is_unverified(self) -> bool:
+        return self.unverified
+
+    def verify_current(self, host=None) -> str:
+        if self.login_error is not None:
+            raise self.login_error
+        if not self.saved:
+            raise AuthError("저장된 로그인 없음")
+        return self.saved["id"]
+
+    def logout(self) -> None:
+        self.saved = None
+        self.logged_out = True
+
+
+class FakeConfig:
+
+    def __init__(self, **values) -> None:
+        self.github_host = values.get("github_host")
+        self.flask_port = values.get("flask_port", 8765)
+        self.plugin_tags = values.get("plugin_tags", ["#plugin", "#release"])
+        self.ca_bundle = None
+        self.http_timeout = 5.0
+        self.github_api_base = None
+
+
+class FakeChatBackend:
+    """SSE 챗 백엔드 fake — 대본을 재생하고 호출을 기록 (§12.3)."""
+
+    def __init__(self, script: Optional[List[dict]] = None) -> None:
+        self.script = script or [
+            {"type": "delta", "text": "안녕"},
+            {"type": "done", "session_id": "sess-1"},
+        ]
+        self.calls: List[Tuple[str, Optional[str]]] = []
+
+    def stream(self, message: str, session_id: Optional[str] = None):
+        self.calls.append((message, session_id))
+        return iter(self.script)
+
+
+class FakeTerminalSession:
+
+    def __init__(self) -> None:
+        self.session_id = "term-1"
+        self.written: List[str] = []
+        self.closed = False
+
+    def read(self, timeout: float = 0.1) -> bytes:
+        del timeout
+        raise OSError("fake 세션 — 읽을 것 없음")
+
+    def write(self, data: str) -> None:
+        self.written.append(data)
+
+    def resize(self, rows: int, cols: int) -> None:
+        pass
+
+    def alive(self) -> bool:
+        return not self.closed
+
+    def close(self) -> None:
+        self.closed = True
+
+
+class FakeTerminalManager:
+
+    def __init__(self) -> None:
+        self.sessions: List[FakeTerminalSession] = []
+        self.closed_all = False
+
+    def create(self) -> FakeTerminalSession:
+        session = FakeTerminalSession()
+        self.sessions.append(session)
+        return session
+
+    def discard(self, session_id: str) -> None:
+        pass
+
+    def close_all(self) -> None:
+        self.closed_all = True
+
+
+class FakeContainer:
+    """cli.main / api.create_app에 주입되는 최소 조립체."""
+
+    def __init__(self, tmp_paths, config: Optional[FakeConfig] = None) -> None:
         self.paths = tmp_paths
-        self.config = config
+        self.config = config if config is not None else FakeConfig()
+        self.auth = FakeAuthService()
         self.catalog_service = FakeCatalogService()
         self.activation_service = FakeActivationService()
         self.install_service = FakeInstallService()
         self.org_service = FakeOrgService()
         self.inspect_service = FakeInspectService()
         self.preset_service = FakePresetService()
-
-
-@pytest.fixture
-def container(tmp_paths) -> FakeContainer:
-    return FakeContainer(tmp_paths)

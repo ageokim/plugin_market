@@ -20,7 +20,7 @@
 | M2 | GitHub 연동 (urls·client·rest_client·scanner) | ✅ |
 | M3 | 설치·등록 코어 (gitops·registry·services·container) | ✅ |
 | M4 | CLI + envcheck — **첫 실사용 지점** | 🔄 |
-| M5 | Flask API (REST·SSE 챗·WS 터미널·수명) | ⬜ |
+| M5 | Flask API (REST·SSE 챗·WS 터미널·수명) | ✅ |
 | M6 | 프론트 web/ | ⬜ |
 | M7 | launcher (run.sh/run.cmd·env/ 셋업) | ⬜ |
 | M8 | 통합 검증 (시나리오 1~8 워크스루) | ⬜ |
@@ -120,18 +120,20 @@
 
 ### M5 — Flask API
 
-- [ ] `api/app.py` — app factory, blueprint 등록, `web/` 정적 서빙, **127.0.0.1 바인딩 강제** (§5)
-- [ ] `api/auth.py` — login/logout/session (§12.6) / `api/orgs.py` — org CRUD(권한 게이트) / `api/plugins.py` — 카탈로그·플러그인 액션·inspect / `api/presets.py` — preset CRUD·액션 (§5)
-- [ ] `api/lifecycle.py` — heartbeat(2s)·tab-close, watchdog 단독 종료 판정 (§12.5)
-- [ ] `api/chat.py` — SSE 스트리밍, Agent SDK(3.10+) / subprocess 폴백(3.8·3.9) 자동 전환, `pm` 가로채기(`^pm\s`+allowlist) (§12.3)
-- [ ] `system/terminal.py` + `api/terminal.py` — pty 세션 관리(POSIX pty/pywinpty) ↔ `WS /api/term`(flask-sock), 토큰 발급 `POST /api/term/token`(단기·1회용 §11) (§12.4)
+- [x] `api/app.py` — app factory, blueprint 등록, `web/` 정적 서빙, **127.0.0.1 바인딩 강제** (§5)
+- [x] `api/auth.py` — login/logout/session (§12.6) / `api/orgs.py` — org CRUD(권한 게이트) / `api/plugins.py` — 카탈로그·플러그인 액션·inspect / `api/presets.py` — preset CRUD·액션 (§5)
+- [x] `api/lifecycle.py` — heartbeat(2s)·tab-close, watchdog 단독 종료 판정 (§12.5)
+- [x] `api/chat.py` — SSE 스트리밍, Agent SDK(3.10+) / subprocess 폴백(3.8·3.9) 자동 전환, `pm` 가로채기(`^pm\s`+allowlist) (§12.3)
+- [x] `system/terminal.py` + `api/terminal.py` — pty 세션 관리(POSIX pty/pywinpty) ↔ `WS /api/term`(flask-sock), 토큰 발급 `POST /api/term/token`(단기·1회용 §11) (§12.4)
 
 테스트:
 
-- [ ] `app.test_client()` + fake services: 전 REST 엔드포인트 계약(정상·오류 코드) / lifecycle: heartbeat 끊김 → watchdog 종료 판정 로직
-- [ ] curl 스모크: serve 기동 후 login→orgs→plugins 왕복, SSE 챗 1문답
+- [x] `app.test_client()` + fake services: 전 REST 엔드포인트 계약(정상·오류 코드) / lifecycle: heartbeat 끊김 → watchdog 종료 판정 로직
+- [x] curl 스모크: serve 기동 후 login→orgs→plugins 왕복, SSE 챗 1문답
 
 **DoD**: 계약 테스트 전 통과 + curl 스모크 성공. 외부 인터페이스에서 127.0.0.1 외 접근 불가 확인.
+
+> 2026-07-16 완료 — 계약 31개 포함 272 테스트 통과. curl 스모크: session·heartbeat·plugins·term/token(401)·챗 pm 가로채기(SSE)·**watchdog 자동 종료 실측(~21초)**·127.0.0.1 단독 LISTEN. 실 GitHub login→orgs 왕복은 M4 E2E와 함께 수행 예정.
 
 ### M6 — 프론트 web/
 
