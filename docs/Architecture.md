@@ -179,6 +179,8 @@ flowchart TB
 | `api/chat.py` | `POST /api/chat` — claude 챗, **SSE 스트리밍** (Agent SDK, §12.3) | — |
 | `api/terminal.py` | `WS /api/term` — xterm.js ↔ pty 양방향 중계 (flask-sock) | — |
 | `api/lifecycle.py` | `POST /api/heartbeat`, `POST /api/tab-close` — 서버 수명 관리 (§12.5, 종료 판정은 watchdog 전담) | — |
+| `api/workflow.py` | **Workflow 타임라인**(§12.7): `WorkflowStore`(인메모리 링버퍼·SSE 팬아웃) + `POST /api/workflow/events`(hook 수신)·`GET /sessions`·`GET /stream`·`DELETE` | — |
+| `hooks/report_workflow.sh` | 관찰 전용 hook 리포터 — stdin JSON을 pm serve로 전달, 항상 exit 0 (§12.7) | — |
 | `container.py` | **조립 루트** — 설정 읽기, 구현체 생성·주입은 여기서만 | — |
 | `cli.py` + `__main__.py` | argparse 디스패치 → services, 표 출력, 종료코드(0 정상/1 오류/2 사용법). `python -m pm` (launcher는 `pm serve` 실행) | — |
 
@@ -192,6 +194,7 @@ flowchart TB
 | `js/sidebar.js` | org URL 추가/삭제, org별 플러그인 목록 렌더, pin/hover 동작 |
 | `js/chat.js` | claude 챗: fetch + SSE 수신 렌더, [새 대화] |
 | `js/term.js` | xterm.js 초기화 + WebSocket 연결, 리사이즈 |
+| `js/workflow.js` | Workflow 탭: 스냅샷 로딩 + EventSource 구독, 타임라인 렌더 (§12.7) |
 | `vendor/xterm/` | xterm.js 로컬 번들 (CDN 미사용 — 오프라인/사내망 대응) |
 
 **테스트 전략이 DIP에서 자동으로 나온다**: services는 Fake 구현체(가짜 GitHubClient, 임시 디렉토리 ProjectPaths, 기록형 GitRunner)로 네트워크·실제 `.claude` 없이 단위 테스트한다. Flask API는 `app.test_client()`로 services를 fake로 갈아끼워 검증한다 (§13.3).
@@ -415,7 +418,7 @@ stateDiagram-v2
 | 파일 | 내용 | git |
 |---|---|---|
 | `.claude-plugin/marketplace.json` | pm이 관리하는 로컬 마켓플레이스 (설치된 플러그인 목록, org 혼합) | 비추적 |
-| `.claude/settings.json` | 팀 공통: 권한 allowlist(§12.3), env 등 | 커밋 |
+| `.claude/settings.json` | 팀 공통: 권한 allowlist(§12.3), env, **workflow hooks(§12.7)** | 커밋 |
 | `.claude/settings.local.json` | 머신별: `enabledPlugins`, provider 전환 env(§12.3) | 비추적 |
 
 ---
@@ -549,6 +552,7 @@ org URL 입력은 이름/URL/SSH 어느 형태든 허용: 스킴 제거 → `git
 | PAT 보관 | 로그인 성공 시 `data/credentials.json`에 자동 저장(§8.4 — **사용자 결정으로 파일 저장이 기본**). 평문 파일이므로 생성 시 권한 600, git 비추적, 첫 생성 시 경고 1회. 로그아웃 = 파일 삭제. OS keyring 전환은 로드맵(§15) |
 | private clone 자격증명 | `git -c http.extraHeader=...`는 **프로세스 인자로 토큰이 `ps`에 노출**(프로토타입 학습) → `GIT_CONFIG_COUNT/GIT_CONFIG_KEY_0/GIT_CONFIG_VALUE_0` **환경변수 방식** 사용 (인자 노출 없음, `.git/config`에도 안 남음). `GIT_TERMINAL_PROMPT=0`으로 인증 실패 시 대기 없이 즉시 오류 |
 | Flask 노출 | **`127.0.0.1` 바인딩 강제** (app factory에서 하드코딩 — 외부 인터페이스 바인딩 옵션 자체를 두지 않음). API·SSE·WS 전부 localhost 전용 |
+| workflow 이벤트 채널 | `/api/workflow/*`는 무인증 — hook 스크립트에 자격증명이 없고, 127.0.0.1 전용 바인딩이 유일한 신뢰 경계(heartbeat와 동급의 로컬 계측 채널, §12.7). 수신 내용은 저장하지 않는 메모리 링버퍼 |
 | 터미널 WS 보호 | 내장 터미널은 임의 명령 실행 통로다 — localhost 바인딩에 더해 **WS 연결마다 토큰 검증**: 인증된 `POST /api/term/token`이 단기(≈30초)·1회용 토큰을 발급하고, 프론트는 모든 WS 연결(신규·재연결·새 터미널) 직전에 발급받아 사용한다. 토큰은 첫 사용 시 무효화 (다른 로컬 프로세스의 무단 연결 차단) |
 | 프론트 | 사용자/외부 데이터 렌더링 시 escape 필수 (org명·플러그인 description 등 — XSS 방지). xterm.js 등 vendor는 로컬 동봉만 사용 |
 | headless claude 권한 | `--dangerously-skip-permissions` 기본 사용 금지. `.claude/settings.json`의 허용 목록(allowlist) 사전 구성으로 대응 (§12.3) |
@@ -561,17 +565,18 @@ org URL 입력은 이름/URL/SSH 어느 형태든 허용: 스킴 제거 → `git
 
 ```
 ┌─────────┬──────────────────────────────────────────────┐
-│ 사이드바 │ [ Claude ⇄ 터미널 ] [+ 새 대화/새 터미널]      │ ← 탭 토글이 액션 버튼 옆
+│ 사이드바 │ [ Claude ⇄ 터미널 ⇄ Workflow ] [액션 버튼]     │ ← 탭 토글이 액션 버튼 옆
 │ (플러그인)│  ┌────────────────────────────────────────┐ │
 │         │  │  선택된 뷰 하나가 메인 전체 표시:         │ │
 │ 📌 고정  │  │  · Claude 챗 (SSE 스트리밍)              │ │
 │ 토글    │  │  · 내장 터미널 (xterm.js,                │ │
 │         │  │    cwd=plugin_market)                    │ │
+│         │  │  · Workflow 타임라인 (§12.7)             │ │
 │         │  └────────────────────────────────────────┘ │
 └─────────┴──────────────────────────────────────────────┘
 ```
 
-- **주 화면 = Claude ↔ 터미널 탭 전환** — 상단 세그먼트 토글([새 대화] 버튼 옆)을 눌러 전환하고, 선택된 뷰가 메인 전체를 쓴다. 액션 버튼은 뷰에 따라 [새 대화]/[새 터미널]로 바뀐다. 플러그인 관리는 왼쪽 사이드바.
+- **주 화면 = Claude ↔ 터미널 ↔ Workflow 탭 전환** — 상단 세그먼트 토글([새 대화] 버튼 옆)을 눌러 전환하고, 선택된 뷰가 메인 전체를 쓴다. 액션 버튼은 뷰에 따라 [새 대화]/[새 터미널]/[기록 지우기]로 바뀐다. 플러그인 관리는 왼쪽 사이드바.
 - 단일 페이지(`web/index.html`) — 로그인 뷰 ↔ 메인 뷰를 JS로 전환. 프론트는 빌드 과정 없는 순수 HTML/CSS/JS.
 - **디자인 언어**: 다크 + 글래스(backdrop-blur) 패널, 인디고→바이올렛 그라데이션 액센트, 이모지 대신 **인라인 SVG 스트로크 아이콘**(`<symbol>`/`<use>` 스프라이트 — 별도 vendor 불필요), 상태 표시는 색점(●)+라벨. 기준 시안: docs/mockup/.
 
@@ -637,6 +642,51 @@ run.sh / run.cmd  (환경 체크 통과 후)
 - 로그아웃 버튼 = 세션 종료 + credentials.json 삭제.
 - 시작 시퀀스: `credentials.json 존재 → 검증 → 통과 시 메인 / 실패·부재 시 로그인 창`.
 
+### 12.7 Workflow 뷰 — hooks 기반 실행 타임라인
+
+plugin/claude가 수행하는 워크플로우(도구 호출·서브에이전트 단계)를 **세로 타임라인**으로
+실시간 표시하는 세 번째 탭. 수집은 Claude Code **hooks**로 하므로 챗(SDK)과
+내장 터미널의 대화형 claude **모든 세션**이 잡힌다.
+
+```
+claude 세션 (챗 SDK · 터미널 대화형 — 어느 쪽이든)
+  → .claude/settings.json hooks (관찰 전용, async, 항상 exit 0)
+  → scripts/pm/hooks/report_workflow.sh
+      (stdin JSON 그대로 전달 · 포트는 PM_PORT → data/config.json → 8765)
+  → POST /api/workflow/events
+  → WorkflowStore — 인메모리 링버퍼 (세션 20 · 세션당 step 500)
+  → GET /api/workflow/sessions (스냅샷) + GET /api/workflow/stream (SSE 팬아웃)
+  → [Workflow] 탭: 세로 타임라인 (진행 중 = 펄스, 완료 ✓, 실패 ✗)
+```
+
+- **수집 이벤트**: SessionStart / UserPromptSubmit / PreToolUse / PostToolUse /
+  PostToolUseFailure / SubagentStart·Stop / Stop / SessionEnd. hook은 SDK가
+  `setting_sources=["project","local"]`로 project settings를 읽으므로(§12.3)
+  챗에서도 동일하게 발화한다.
+- **관찰 전용 원칙**: 리포터는 어떤 경우에도 세션을 막지 않는다 — `async` 실행,
+  connect-timeout 1초, **항상 exit 0**. `pm serve`가 꺼져 있으면 조용히 무시된다
+  (루프백 즉시 거부 ≈ 수 ms). 대화형 claude 첫 실행 시 프로젝트 hook
+  신뢰 확인이 1회 뜰 수 있다.
+- **상태 도출 규칙**: hook 입력에 tool_use id가 없으므로 —
+  Pre→`running` step 생성, Post(Failure)는 같은 세션·같은 `tool_name`의
+  **가장 최근 running step**을 `done`/`failed`로 마감(LIFO). 짝이 없으면(서버
+  재시작 등) 완료 step을 즉석 생성. Stop/SessionEnd 시 잔여 running을 일괄
+  마감하고 세션을 idle/ended로. SessionStart 없이 이벤트가 먼저 오면 세션을
+  자동 생성한다. 미지의 hook 이벤트는 무시(버전 내성). 동일 도구 병렬 호출
+  시 경과시간이 서로 바뀔 수 있는 근사임을 감수한다.
+- **서브에이전트 레인**: SubagentStart→스택 push, 이후 도구 step의
+  depth=스택 깊이(들여쓰기), SubagentStop→pop — 시간 구간 기반 근사.
+- **요약은 서버가 생성**(§13.2 — 프론트는 렌더만): Bash→command 앞 60자,
+  Read/Write/Edit→file_path, Task→agent_type, MCP(`mcp__…`)→`is_plugin` 표시
+  (`mcp__plugin_{name}_…`이면 플러그인명 배지). 탭에는 [전체|플러그인만] 필터 칩.
+- **보관은 서버 메모리만** — §6.4 실측 원칙과 동일하게 저장 상태를 두지 않는다.
+  링버퍼 초과 시 가장 오래된 비활성 세션·앞쪽 완료 step부터 절삭.
+  [기록 지우기] 버튼 = `DELETE /api/workflow`(전 구독자에 clear 브로드캐스트).
+- **SSE 배압**: 구독자별 queue(상한 1000) — 넘치면 그 구독자만 끊고,
+  EventSource 자동 재연결 + onopen 스냅샷 재로딩으로 자기 복구. 15초 keepalive.
+- `/api/workflow/*`는 무인증 — hook 스크립트는 자격증명이 없고 서버가
+  127.0.0.1 전용(§11)이며 heartbeat(§12.5)와 같은 로컬 계측 채널이다.
+
 ---
 
 ## 13. 코딩 컨벤션 및 품질
@@ -697,6 +747,7 @@ run.sh / run.cmd  (환경 체크 통과 후)
 | 10 | 플러그인 이름 충돌 UX | 기본 repo명, 충돌 시 `{org}-{name}` 자동 접두(§6.2) — 표시명 규칙은 구현 중 확정 |
 | 11 | preset 팀 공유 | 1차는 개인용(`data/presets.json` 비추적). 팀 표준 세트를 repo에 커밋해 공유하는 형태는 후속 |
 | 12 | skill 단위 세분화 | preset 멤버는 플러그인 단위(§6.5) — Claude Code가 skill 단위 토글을 지원하게 되면 재검토 |
+| 13 | Windows hook 리포터 | workflow 수집(§12.7)은 sh 스크립트 — Windows는 hook 실패가 무해하게 무시됨. 고정 인터프리터 기반 네이티브 리포터는 후속 |
 
 ### 목표 파일 트리
 
@@ -710,7 +761,7 @@ plugin_market/
 ├─ web/                           # 정적 프론트 (§5·§13.2)
 │  ├─ index.html
 │  ├─ css/style.css
-│  ├─ js/ (app·sidebar·chat·term).js
+│  ├─ js/ (app·sidebar·chat·term·workflow).js
 │  └─ vendor/xterm/               #   xterm.js 로컬 번들
 ├─ plugins/                       # 설치 plugin clone — plugins/{org}/{name} (비추적)
 ├─ .claude/                       # local claude (settings.json 커밋 / settings.local.json 비추적)
