@@ -13,7 +13,8 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from pm.claudeplug.links import PluginLinks
 from pm.claudeplug.registry import (ClaudePluginRegistry, detect_profile,
-                                    parse_source, validate_convention)
+                                    parse_source, validate_convention,
+                                    validate_inhouse)
 from pm.models import PluginState, derive_state
 from pm.paths import ProjectPaths
 from pm.store.json_store import JsonStore
@@ -91,10 +92,12 @@ class InspectService:
             issues.append("드리프트 — native 등록만 존재, clone 없음")
         if org not in registered_orgs:
             issues.append("미등록 org — org 재등록 또는 삭제 권장 (§12.2)")
-        if cloned and detect_profile(clone_dir) == "standalone" \
-                and native_entry is not None:
-            issues.append(
-                "드리프트 — native 등록 잔존, plugin.json 없음 (--repair)")
+        if cloned and detect_profile(clone_dir) == "standalone":
+            if native_entry is not None:
+                issues.append(
+                    "드리프트 — native 등록 잔존, plugin.json 없음 (--repair)")
+            issues.extend(f"규약 권장: {warning}"
+                          for warning in validate_inhouse(clone_dir))
         if cloned and detect_profile(clone_dir) == "native":
             if native_entry is None:
                 issues.append(

@@ -60,6 +60,8 @@ class RecordingGitRunner:
         self.calls = []
         self.valid_plugin = True  # True=native 뼈대 / False=standalone(맨 repo)
         self.broken_native = False  # True=plugin.json은 있으나 name 없음
+        self.inhouse_plugin = False  # True=사내 표준 구조(plugin/ 폴더)
+        self.inhouse_name = None  # 사내 매니페스트 name override
         self.fail_urls = set()
 
     def clone(self, clone_url, dest):
@@ -80,6 +82,14 @@ class RecordingGitRunner:
             (manifest_dir / "plugin.json").write_text(
                 json.dumps(manifest), encoding="utf-8")
             (dest / "skills").mkdir()
+        elif self.inhouse_plugin:
+            plugin_dir = dest / "plugin"
+            plugin_dir.mkdir()
+            (plugin_dir / "plugin.json").write_text(
+                json.dumps({"name": self.inhouse_name or dest.name,
+                            "version": "1.0.0"}), encoding="utf-8")
+            for comp in ("commands", "skills", "workflows"):
+                (plugin_dir / comp).mkdir()
         else:
             (dest / "run.sh").write_text("#!/bin/sh\n", encoding="utf-8")
 

@@ -208,7 +208,7 @@
 
 **DoD**: plugin.json 없는 사내형 repo가 설치→사용중→끄기→삭제 전 흐름 통과. 링크 실측 상태 도출.
 
-> 2026-07-16 완료 — 292 테스트 통과 + **실제 git repo(사내형, 맨 repo)로 전 흐름 실측**: 상대/절대 링크 생성·marketplace 비관여·disable 원본 무손상·uninstall 완전 정리. preset apply도 디스크 실측 열거로 전환.
+> 2026-07-16 완료(+사내 표준 구조 반영) — 295 테스트 통과. 사내 매니페스트 `plugin/plugin.json` 인식(링크명=매니페스트 name 우선, 파싱·불일치는 권장 경고), 링크 실측을 타깃 스캔으로 강인화. **실제 git repo(사내형, 맨 repo)로 전 흐름 실측**: 상대/절대 링크 생성·marketplace 비관여·disable 원본 무손상·uninstall 완전 정리. preset apply도 디스크 실측 열거로 전환.
 
 ## 4. 미결정·차단 요소
 

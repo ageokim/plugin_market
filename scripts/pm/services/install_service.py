@@ -13,7 +13,8 @@ from typing import Tuple
 
 from pm.claudeplug.links import PluginLinks
 from pm.claudeplug.registry import (ClaudePluginRegistry, detect_profile,
-                                    validate_convention)
+                                    manifest_name, validate_convention,
+                                    validate_inhouse)
 from pm.errors import PmError, RegistryError
 from pm.gitops import GitRunner, remove_repo_dir
 from pm.models import Plugin
@@ -80,8 +81,12 @@ class InstallService:
                         f"native 규약 위반 — {plugin.ref}: "
                         + " / ".join(errors))
                 entry_name = self._registry.register(plugin.org, plugin.name)
+            else:
+                warnings = tuple(validate_inhouse(dest))  # 경고만 (부록 A.2)
             if enable:
-                link_name = self._links.enable(plugin.org, plugin.name)
+                link_name = self._links.enable(
+                    plugin.org, plugin.name,
+                    preferred=manifest_name(dest))  # §6.2 링크명 규칙
                 if entry_name is not None:
                     self._registry.set_enabled(entry_name, True)
         except BaseException:

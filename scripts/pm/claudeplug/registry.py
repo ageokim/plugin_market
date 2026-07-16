@@ -39,14 +39,61 @@ def parse_source(source: str) -> Optional[Tuple[str, str]]:
 
 
 def detect_profile(clone_dir: Path) -> str:
-    """프로파일 자동 감지 (§6.1 표) — plugin.json 유무가 유일한 기준.
+    """프로파일 자동 감지 (§6.1 표).
 
     Returns:
-        "native" (plugin.json 보유 — marketplace 등록 병행) 또는
-        "standalone" (기본 — 링크만, 추가 규약 없음 부록 A.2).
+        "native" (``.claude-plugin/plugin.json`` 보유 — marketplace 병행)
+        또는 "standalone" (기본 — 링크만. 사내 표준 구조 ``plugin/`` 포함,
+        부록 A.2).
     """
     manifest = clone_dir / ".claude-plugin" / "plugin.json"
     return "native" if manifest.is_file() else "standalone"
+
+
+def _load_manifest(path: Path) -> Optional[Dict]:
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def manifest_name(clone_dir: Path) -> Optional[str]:
+    """링크명으로 쓸 매니페스트 name (§6.2·부록 A.2).
+
+    사내 매니페스트(``plugin/plugin.json``) 우선, native
+    (``.claude-plugin/plugin.json``) 차선 — 없거나 파싱 불가면 None
+    (호출자는 repo명으로 폴백).
+    """
+    for relative in ("plugin/plugin.json", ".claude-plugin/plugin.json"):
+        data = _load_manifest(clone_dir / relative)
+        if data and isinstance(data.get("name"), str) and data["name"]:
+            return data["name"]
+    return None
+
+
+def validate_inhouse(clone_dir: Path) -> List[str]:
+    """사내 표준 구조 검사 — **권장 경고만** (부록 A.2·A.4, 차단 없음)."""
+    warnings: List[str] = []
+    manifest_path = clone_dir / "plugin" / "plugin.json"
+    if not manifest_path.is_file():
+        warnings.append(
+            "사내 표준 구조 미보유 — plugin/plugin.json 권장 (부록 A.2)")
+        return warnings
+    data = _load_manifest(manifest_path)
+    if data is None:
+        warnings.append("plugin/plugin.json 파싱 불가 (부록 A.2)")
+        return warnings
+    declared = data.get("name")
+    if not declared:
+        warnings.append("plugin/plugin.json에 name 없음 (부록 A.2)")
+    elif declared != clone_dir.name:
+        warnings.append(
+            f"plugin/plugin.json name({declared}) ≠ repo명({clone_dir.name})"
+            " — 링크명은 매니페스트 name을 따른다 (§6.2)")
+    return warnings
 
 
 def validate_convention(clone_dir: Path) -> Tuple[List[str], List[str]]:

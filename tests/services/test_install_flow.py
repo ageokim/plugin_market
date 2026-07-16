@@ -140,3 +140,46 @@ def test_update_not_installed_raises(env):
 def test_enable_not_installed_raises(env):
     with pytest.raises(RegistryError):
         env.activation_service.enable("org-a", "ghost")
+
+
+def test_install_inhouse_standard_structure(env):
+    """사내 표준 구조(plugin/ 폴더) repo — 무경고 설치, 링크명=매니페스트 name."""
+    env.login_and_register_org("org-a")
+    plugin = env.catalog_plugin("org-a", "inhouse-std")
+    env.git.valid_plugin = False
+    env.git.inhouse_plugin = True
+    result = env.install_service.install(plugin)
+    assert result.profile == "standalone"
+    assert result.warnings == ()  # 표준 준수 — 권장 경고 없음
+    assert (env.paths.plugin_roots_dir / "inhouse-std").resolve() == \
+        env.paths.plugin_clone_dir("org-a", "inhouse-std").resolve()
+
+
+def test_install_inhouse_manifest_name_becomes_link_name(env):
+    """plugin/plugin.json의 name ≠ repo명이면 링크명은 매니페스트를 따른다 (§6.2)."""
+    env.login_and_register_org("org-a")
+    plugin = env.catalog_plugin("org-a", "repo-x")
+    env.git.valid_plugin = False
+    env.git.inhouse_plugin = True
+    env.git.inhouse_name = "실제도구명"
+    result = env.install_service.install(plugin)
+    assert result.entry_name == "실제도구명"
+    assert (env.paths.plugin_roots_dir / "실제도구명").resolve() == \
+        env.paths.plugin_clone_dir("org-a", "repo-x").resolve()
+    assert any("≠ repo명" in w for w in result.warnings)  # 불일치 권장 경고
+    # 상태 실측도 매니페스트 링크명으로 동작 (타깃 스캔 §6.4)
+    from pm.models import PluginState
+    assert env.activation_service.state("org-a", "repo-x") \
+        is PluginState.ENABLED
+    env.activation_service.disable("org-a", "repo-x")
+    assert not (env.paths.plugin_roots_dir / "실제도구명").exists()
+
+
+def test_install_bare_repo_warns_structure(env):
+    """맨 repo(사내 구조도 없음)는 설치되되 권장 경고 (부록 A.2)."""
+    env.login_and_register_org("org-a")
+    plugin = env.catalog_plugin("org-a", "bare")
+    env.git.valid_plugin = False
+    result = env.install_service.install(plugin)
+    assert result.profile == "standalone"
+    assert any("사내 표준 구조 미보유" in w for w in result.warnings)

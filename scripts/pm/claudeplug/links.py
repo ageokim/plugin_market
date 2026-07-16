@@ -45,12 +45,18 @@ class PluginLinks:
 
     # ── 실측 ─────────────────────────────────────────────────
     def link_name_for(self, org: str, name: str) -> Optional[str]:
-        """이 clone을 가리키는 링크명(name 또는 {org}-{name}) — 없으면 None."""
+        """이 clone을 가리키는 링크명 — 없으면 None.
+
+        링크명은 매니페스트 name일 수 있으므로(§6.2) 후보를 추측하지 않고
+        plugin_roots 전체를 타깃 기준으로 스캔한다 (실측 원칙 §6.4).
+        """
+        roots = self._paths.plugin_roots_dir
+        if not roots.is_dir():
+            return None
         clone = self._paths.plugin_clone_dir(org, name)
-        for candidate in (name, f"{org}-{name}"):
-            link = self._paths.plugin_roots_dir / candidate
+        for link in roots.iterdir():
             if _points_to(link, clone):
-                return candidate
+                return link.name
         return None
 
     def is_enabled(self, org: str, name: str) -> bool:
@@ -78,8 +84,12 @@ class PluginLinks:
                 if not link.resolve().exists()]
 
     # ── 생성·제거 ────────────────────────────────────────────
-    def enable(self, org: str, name: str) -> str:
+    def enable(self, org: str, name: str,
+               preferred: Optional[str] = None) -> str:
         """링크 2개 생성(멱등) → 링크명 반환 (§6.2 충돌 규칙).
+
+        Args:
+            preferred: 매니페스트 name (§6.2 — 없으면 repo명 사용).
 
         Raises:
             RegistryError: clone 없음, 또는 충돌 해소 불가.
@@ -90,7 +100,7 @@ class PluginLinks:
                 f"clone 없음: {org}/{name} — pm install 먼저 (§6.4)")
         link_name = self.link_name_for(org, name)
         if link_name is None:
-            link_name = self._pick_link_name(org, name, clone)
+            link_name = self._pick_link_name(org, preferred or name, clone)
         for base, relative in ((self._paths.plugin_roots_dir, True),
                                (self._paths.plugin_links_dir, False)):
             self._make_link(base / link_name, clone, relative=relative)
@@ -118,7 +128,7 @@ class PluginLinks:
 
     # ── 내부 ─────────────────────────────────────────────────
     def _pick_link_name(self, org: str, name: str, clone: Path) -> str:
-        """기본 repo명 — 다른 clone이 소유 중이면 {org}-{name} (§6.2).
+        """기본은 매니페스트 name(→repo명) — 소유 중이면 {org}-{name} (§6.2).
         먼저 설치된 쪽의 링크는 절대 리네임하지 않는다."""
         for candidate in (name, f"{org}-{name}"):
             link = self._paths.plugin_roots_dir / candidate
