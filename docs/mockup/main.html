@@ -225,7 +225,22 @@ details.inspect summary { display:flex; align-items:center; gap:6px; cursor:poin
            color:var(--dim); font-size:.7rem; padding:6px 14px; }
 .msg pre { font-family:"SF Mono",Menlo,Consolas,monospace; font-size:.72rem;
            white-space:pre-wrap; word-break:break-word; color:#cdd5e0; }
-.chat-in { display:flex; gap:8px; padding:12px 18px; border-top:1px solid var(--line); }
+.chat-in { display:flex; gap:8px; padding:12px 18px; border-top:1px solid var(--line); position:relative; align-items:center; }
+
+/* ── org 추가 팝오버 (§12.2 — 전송 버튼 위 아이콘) ── */
+.org-fab-wrap { position:relative; flex:none; display:flex; }
+.org-fab { width:38px; height:38px; border-radius:12px; border:1px solid var(--line2);
+           background:rgba(255,255,255,.04); color:var(--muted); cursor:pointer;
+           display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.org-fab:hover { color:var(--text); background:rgba(255,255,255,.08); }
+.org-fab.open { background:var(--grad); border-color:transparent; color:#fff;
+                box-shadow:0 4px 14px rgba(124,93,250,.35); }
+.org-pop { position:absolute; bottom:calc(100% + 10px); left:0; width:320px;
+           background:var(--glass); backdrop-filter:blur(14px);
+           border:1px solid var(--line2); border-radius:14px; padding:12px 14px;
+           box-shadow:0 16px 48px rgba(0,0,0,.5); z-index:30; }
+.org-pop .t { display:flex; align-items:center; gap:6px; font-size:.7rem;
+              color:var(--muted); margin-bottom:8px; letter-spacing:.02em; }
 .chat-in input { flex:1; padding:10px 14px; border-radius:12px; font-size:.82rem; }
 .sendbtn { width:38px; height:38px; border-radius:12px; background:var(--grad); border:none;
            color:#fff; display:flex; align-items:center; justify-content:center;
@@ -387,7 +402,7 @@ details.inspect summary { display:flex; align-items:center; gap:6px; cursor:poin
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
   <symbol id="i-in" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></symbol>
 </svg>
-<div class="mock-banner">목업 — 실구현(web/) 스냅샷 · 탭(Claude/터미널/Workflow) 클릭 · 고정 버튼과 왼쪽 가장자리 호버 · 로그아웃 → 로그인 화면</div>
+<div class="mock-banner">목업 — 실구현(web/) 스냅샷 · 탭(Claude/터미널/Workflow) · 전송 버튼 왼쪽 🔗 = org 추가 팝오버 · 고정 버튼/왼쪽 호버 · 로그아웃 → 로그인 화면</div>
 <section id="view-main">
   <header>
     <div class="logo"><span class="mark"><svg class="ic"><use href="#i-box"/></svg></span>Plugin Market</div>
@@ -408,15 +423,6 @@ details.inspect summary { display:flex; align-items:center; gap:6px; cursor:poin
         <button id="pinBtn" type="button"><svg class="ic" style="width:11px;height:11px"><use href="#i-pin"/></svg><span id="pinTxt">고정</span></button>
       </div>
       <div class="sb-body">
-
-        <div class="sb-sec">
-          <div class="t"><svg class="ic" style="width:12px;height:12px"><use href="#i-link"/></svg>ORGANIZATION 추가 — 권한 있어야 등록됨</div>
-          <div class="orgadd">
-            <input id="orgUrl" placeholder="https://github.xxx.xxx/org-name">
-            <button class="addbtn" id="orgAddBtn" type="button" title="org 추가"><svg class="ic" style="width:14px;height:14px"><use href="#i-plus"/></svg></button>
-          </div>
-          <div class="inline-err" id="orgErr" hidden></div>
-        </div>
 
         <div class="sb-sec">
           <div class="search-row">
@@ -487,6 +493,18 @@ details.inspect summary { display:flex; align-items:center; gap:6px; cursor:poin
           <div class="msg claude">auth.py:42에 만료 검사를 추가했습니다. 테스트 7건 통과 ✓</div>
         </div>
         <div class="chat-in">
+          <!-- org 추가 — 전송 버튼 위 아이콘, 클릭 시 팝오버 (§12.2) -->
+          <div class="org-fab-wrap" id="orgFabWrap">
+            <div class="org-pop" id="orgPop" hidden>
+              <div class="t"><svg class="ic" style="width:12px;height:12px"><use href="#i-link"/></svg>ORGANIZATION 추가 — 권한 있어야 등록됨</div>
+              <div class="orgadd">
+                <input id="orgUrl" placeholder="https://github.xxx.xxx/org-name">
+                <button class="addbtn" id="orgAddBtn" type="button" title="org 추가"><svg class="ic" style="width:14px;height:14px"><use href="#i-plus"/></svg></button>
+              </div>
+              <div class="inline-err" id="orgErr" hidden></div>
+            </div>
+            <button class="org-fab" id="orgFab" type="button" title="organization 추가"><svg class="ic" style="width:15px;height:15px"><use href="#i-link"/></svg></button>
+          </div>
           <input id="chatIn" placeholder="claude에게 메시지… (pm 명령도 입력 가능)">
           <button class="sendbtn" id="sendBtn" type="button" title="전송"><svg class="ic"><use href="#i-send"/></svg></button>
         </div>
@@ -534,7 +552,7 @@ details.inspect summary { display:flex; align-items:center; gap:6px; cursor:poin
 </section>
 
 <script>
-  // ── 목업 데모 JS: 탭 전환·사이드바 고정/호버·로그아웃 이동만 ──
+  // ── 목업 데모 JS: 탭·사이드바 고정/호버·org 팝오버·화면 이동만 ──
   const views = { tabChat: "view-chat", tabTerm: "view-term", tabFlow: "view-flow" };
   const actions = { tabChat: "새 대화", tabTerm: "새 터미널", tabFlow: null };
   for (const tabId of Object.keys(views)) {
@@ -564,6 +582,25 @@ details.inspect summary { display:flex; align-items:center; gap:6px; cursor:poin
   sb.addEventListener("mouseenter", () => clearTimeout(hideTimer));
   sb.addEventListener("mouseleave", () => {
     if (!pinned) hideTimer = setTimeout(() => sb.classList.remove("open"), 300);
+  });
+
+  // org 추가 팝오버 (§12.2) — 실구현과 동일한 열림/닫힘 데모
+  const orgPop = document.getElementById("orgPop");
+  const orgFab = document.getElementById("orgFab");
+  const orgWrap = document.getElementById("orgFabWrap");
+  orgFab.addEventListener("click", () => {
+    orgPop.hidden = !orgPop.hidden;
+    orgFab.classList.toggle("open", !orgPop.hidden);
+    if (!orgPop.hidden) document.getElementById("orgUrl").focus();
+  });
+  document.addEventListener("click", (e) => {
+    if (!orgPop.hidden && !orgWrap.contains(e.target)) {
+      orgPop.hidden = true;
+      orgFab.classList.remove("open");
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { orgPop.hidden = true; orgFab.classList.remove("open"); }
   });
 </script>
 

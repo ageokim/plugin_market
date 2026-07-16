@@ -234,6 +234,7 @@ export function initSidebar(ctx) {
       ctx.toast(`${r.name} 등록 완료 — 플러그인 ${r.plugin_count}개 발견`);
       await ctx.recheckSession(); // 미검증 세션이 검증됐을 수 있음 (§10.2)
       await refreshAll();
+      closeOrgPop(); // 등록 성공 — 팝오버는 아이콘으로 복귀 (§12.2)
     } catch (e) {
       if (e.status !== 401) { err.textContent = e.message; err.hidden = false; } // 인라인 사유
     } finally {
@@ -457,6 +458,24 @@ export function initSidebar(ctx) {
   }
 
   // ── 이벤트 결선 ──
+  // ── org 추가 팝오버 (§12.2): 아이콘 클릭 ↔ 열기, 바깥 클릭/Esc ↔ 닫기 ──
+  function closeOrgPop() {
+    $("orgPop").hidden = true;
+    $("orgFab").classList.remove("open");
+  }
+  $("orgFab").addEventListener("click", () => {
+    const pop = $("orgPop");
+    pop.hidden = !pop.hidden;
+    $("orgFab").classList.toggle("open", !pop.hidden);
+    if (!pop.hidden) $("orgUrl").focus();
+  });
+  document.addEventListener("click", (e) => {
+    if (!$("orgPop").hidden && !$("orgFabWrap").contains(e.target)) closeOrgPop();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeOrgPop();
+  });
+
   $("orgAddBtn").addEventListener("click", addOrg);
   $("orgUrl").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.isComposing) addOrg();

@@ -218,7 +218,22 @@ details.inspect summary { display:flex; align-items:center; gap:6px; cursor:poin
            color:var(--dim); font-size:.7rem; padding:6px 14px; }
 .msg pre { font-family:"SF Mono",Menlo,Consolas,monospace; font-size:.72rem;
            white-space:pre-wrap; word-break:break-word; color:#cdd5e0; }
-.chat-in { display:flex; gap:8px; padding:12px 18px; border-top:1px solid var(--line); }
+.chat-in { display:flex; gap:8px; padding:12px 18px; border-top:1px solid var(--line); position:relative; align-items:center; }
+
+/* ── org 추가 팝오버 (§12.2 — 전송 버튼 위 아이콘) ── */
+.org-fab-wrap { position:relative; flex:none; display:flex; }
+.org-fab { width:38px; height:38px; border-radius:12px; border:1px solid var(--line2);
+           background:rgba(255,255,255,.04); color:var(--muted); cursor:pointer;
+           display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.org-fab:hover { color:var(--text); background:rgba(255,255,255,.08); }
+.org-fab.open { background:var(--grad); border-color:transparent; color:#fff;
+                box-shadow:0 4px 14px rgba(124,93,250,.35); }
+.org-pop { position:absolute; bottom:calc(100% + 10px); left:0; width:320px;
+           background:var(--glass); backdrop-filter:blur(14px);
+           border:1px solid var(--line2); border-radius:14px; padding:12px 14px;
+           box-shadow:0 16px 48px rgba(0,0,0,.5); z-index:30; }
+.org-pop .t { display:flex; align-items:center; gap:6px; font-size:.7rem;
+              color:var(--muted); margin-bottom:8px; letter-spacing:.02em; }
 .chat-in input { flex:1; padding:10px 14px; border-radius:12px; font-size:.82rem; }
 .sendbtn { width:38px; height:38px; border-radius:12px; background:var(--grad); border:none;
            color:#fff; display:flex; align-items:center; justify-content:center;
