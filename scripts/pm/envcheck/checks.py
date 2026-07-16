@@ -128,10 +128,14 @@ def build_checks(
         return True, "git 사용 가능", None
 
     def claude_cli() -> ProbeResult:
-        if which("claude") is None:
-            return (False, "claude CLI 없음",
-                    "npm install -g @anthropic-ai/claude-code")
-        return True, "claude CLI 사용 가능", None
+        from pm.system.claudebin import resolve_claude_bin
+        found = resolve_claude_bin(config, which=which, system=system)
+        if found is None:
+            return (False, "claude 실행 파일 없음 (PATH·SDK 번들·"
+                    "~/.claude/local·VSCode 확장 전부 탐색)",
+                    "npm install -g @anthropic-ai/claude-code 또는 "
+                    "config.json에 claude_bin 지정 (§12.3)")
+        return True, f"claude: {found}", None
 
     def pm_on_path() -> ProbeResult:
         found = which("pm")

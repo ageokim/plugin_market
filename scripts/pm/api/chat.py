@@ -46,18 +46,28 @@ class SubprocessChatBackend:
     """`claude -p` stream-json 폴백 (3.8·3.9 또는 SDK 부재 §12.3)."""
 
     def __init__(self, root: str,
-                 popen: Callable[..., Any] = subprocess.Popen) -> None:
+                 popen: Callable[..., Any] = subprocess.Popen,
+                 claude_bin: Optional[str] = None) -> None:
         self._root = root
         self._popen = popen
+        self._claude_bin = claude_bin or "claude"
 
     def stream(self, message: str,
                session_id: Optional[str] = None) -> Iterator[Dict[str, Any]]:
-        args = ["claude", "-p", message,
+        args = [self._claude_bin, "-p", message,
                 "--output-format", "stream-json", "--verbose"]
         if session_id:
             args += ["--resume", session_id]
-        proc = self._popen(args, cwd=self._root, stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE, text=True)
+        try:
+            proc = self._popen(args, cwd=self._root, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, text=True)
+        except OSError as exc:
+            # claude 미발견/실행 불가 — 스트림이 조용히 죽지 않게 명시 오류
+            yield {"type": "error",
+                   "text": f"claude 실행 실패: {exc} — config.json에 "
+                           "claude_bin을 지정하세요 (§12.3)"}
+            yield {"type": "done", "session_id": None}
+            return
         result_session: Optional[str] = None
         for line in proc.stdout:
             line = line.strip()
@@ -140,7 +150,7 @@ class SdkChatBackend:
             yield event
 
 
-def build_chat_backend(root: str) -> Any:
+def build_chat_backend(root: str, claude_bin: Optional[str] = None) -> Any:
     """버전 게이트(§12.3): 3.10+에서 SDK 시도, 아니면 subprocess 폴백."""
     if sys.version_info >= (3, 10):
         try:
@@ -148,15 +158,21 @@ def build_chat_backend(root: str) -> Any:
             return SdkChatBackend(root)
         except ImportError:
             pass
-    return SubprocessChatBackend(root)
+    return SubprocessChatBackend(root, claude_bin=claude_bin)
 
 
 def make_chat_bp(container: Any, backend: Any) -> Blueprint:
     bp = Blueprint("chat", __name__)
 
     def _sse(events: Iterator[Dict[str, Any]]) -> Iterator[str]:
-        for event in events:
-            yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+        try:
+            for event in events:
+                yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            # 백엔드 예외로 스트림이 무응답으로 죽는 것 방지 (§12.3)
+            for event in ({"type": "error", "text": f"챗 백엔드 오류: {exc}"},
+                          {"type": "done", "session_id": None}):
+                yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
     @bp.post("/chat")
     def chat():

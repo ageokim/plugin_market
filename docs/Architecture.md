@@ -70,6 +70,7 @@
 | 등록 org 목록 | 없음 | **사이드바 URL 입력** / `data/orgs.json` / `pm org add` (§7) |
 | `plugin_tags` | `["#plugin", "#release"]` | `config.json` |
 | `ca_bundle` | 없음 (시스템 기본) | `config.json` — 사내 인증서 환경 (§10.5) |
+| `claude_bin` | 자동 탐색 (PATH→SDK 번들→`~/.claude/local`→VSCode 확장) | `config.json` — 비표준 설치 경로 명시 (§12.3) |
 | `flask_port` | `8765` | `config.json` / `PM_PORT` |
 | 프로젝트 경로들 | `paths.py`의 `ProjectPaths` | 테스트에서 주입 교체 |
 | 타임아웃/페이지 크기 | `config.py` 상수 | `config.json` |
@@ -365,6 +366,7 @@ stateDiagram-v2
   "github_api_base": null,
   "plugin_tags": ["#plugin", "#release"],
   "ca_bundle": null,
+  "claude_bin": null,
   "flask_port": 8765
 }
 ```
@@ -630,6 +632,7 @@ org URL 입력은 이름/URL/SSH 어느 형태든 허용: 스킴 제거 → `git
 
 - 백엔드: `api/chat.py`가 **Claude Agent SDK**(`claude-agent-sdk`)로 세션을 만들고 SSE로 스트리밍. `cwd=ROOT`, `setting_sources=["project","local"]` — local `.claude` 설정·skills·**활성화된 플러그인**이 로딩된다.
 - raw `anthropic` 라이브러리로는 불가(Messages API뿐 — skills/plugins 미로딩). 폴백: `claude -p --output-format stream-json` subprocess.
+- **claude 실행 파일 해석기**: serve 시작 시 `claude_bin` 설정 → PATH → SDK 번들 → `~/.claude/local` → VSCode 확장 순으로 탐색해 PATH에 등록(§2.3) — PATH 밖 설치 환경에서도 챗 폴백·내장 터미널·훅이 claude를 찾는다. 백엔드 실패는 반드시 error 이벤트로 표면화(무응답 금지).
 - **Python 버전 게이트**: `claude-agent-sdk`는 Python ≥ 3.10 요구 (코어 최소는 **3.8**, §15 #2) — 3.8·3.9에서는 SDK를 설치하지 않고(§9.2 marker) 챗 백엔드가 위 subprocess 폴백으로 자동 전환한다 (`claude` CLI는 파이썬 버전과 무관). 챗 상단에 정보성 안내 1회.
 - **provider 전환**: `.claude/settings.local.json`의 `env` 블록(`ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN`/`API_KEY`, `ANTHROPIC_MODEL`, `CLAUDE_CODE_USE_BEDROCK/VERTEX`)이 세션에 적용 — 머신별로 provider를 바꿔도 등록된 skill·plugin은 그대로 동작.
 - 권한: headless 세션은 승인 프롬프트를 띄울 수 없다 → `.claude/settings.json` allowlist 사전 구성, skip-permissions 금지(§11).

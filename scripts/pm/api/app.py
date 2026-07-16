@@ -64,7 +64,10 @@ def create_app(
     workflow_store = workflow_store if workflow_store is not None \
         else WorkflowStore()
     if chat_backend is None:
-        chat_backend = build_chat_backend(str(container.paths.root))
+        from pm.system.claudebin import ensure_claude_on_path
+        claude_bin = ensure_claude_on_path(container.config)  # §12.3 해석기
+        chat_backend = build_chat_backend(str(container.paths.root),
+                                          claude_bin=claude_bin)
     if terminal_manager is None:
         from pm.system.terminal import TerminalManager
         terminal_manager = TerminalManager(container.paths)

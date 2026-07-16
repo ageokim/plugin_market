@@ -133,7 +133,12 @@ def test_host_unset_skips_reachability(tmp_paths):
     assert result.passed and "skip" in result.detail
 
 
-def test_which_based_checks(tmp_paths):
+def test_which_based_checks(tmp_paths, monkeypatch):
+    # claude_cli는 which 밖 폴백(SDK 번들 등)까지 탐색하므로(§12.3)
+    # '완전 미발견' 케이스는 해석기를 직접 막아 검증한다.
+    import pm.system.claudebin as claudebin
+    monkeypatch.setattr(claudebin, "resolve_claude_bin",
+                        lambda *a, **k: None)
     missing = build_checks(tmp_paths, _config(), which=lambda name: None)
     assert not _check_by_id(missing, "git").run().passed
     assert not _check_by_id(missing, "claude_cli").run().passed

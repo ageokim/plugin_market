@@ -27,6 +27,7 @@ DEFAULTS: Dict[str, Any] = {
     "github_api_base": None,  # null이면 host에서 규칙 유도 (§10.3)
     "plugin_tags": ["#plugin", "#release"],
     "ca_bundle": None,  # 사내 인증서 (§10.5)
+    "claude_bin": None,  # claude 실행 파일 명시 경로 — null이면 자동 탐색 (§12.3)
     "flask_port": 8765,
     "http_timeout": 10.0,
     "github_per_page": 100,
@@ -175,6 +176,10 @@ class ConfigProvider:
     @property
     def flask_port(self) -> int:
         return self.get("flask_port")
+
+    @property
+    def claude_bin(self):
+        return self.get("claude_bin")
 
     @property
     def http_timeout(self) -> float:
