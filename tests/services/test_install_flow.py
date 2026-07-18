@@ -103,8 +103,8 @@ def test_name_collision_keeps_first_entry(env):
     assert second_result.entry_name == "org-b-plugin-a"  # 신규만 접두 (§6.2)
     enabled = env.settings_store.read()["enabledPlugins"]
     assert enabled == {
-        "plugin-a@plugin-market": True,
-        "org-b-plugin-a@plugin-market": True,
+        "plugin-a@plugin-cafe": True,
+        "org-b-plugin-a@plugin-cafe": True,
     }
     # 첫 항목 삭제해도 둘째는 무관
     env.install_service.uninstall("org-a", "plugin-a")

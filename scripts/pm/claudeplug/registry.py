@@ -18,7 +18,7 @@ from pm.store.json_store import JsonStore
 
 logger = logging.getLogger(__name__)
 
-MARKETPLACE_NAME = "plugin-market"  # §6.2 — 디렉토리명과 달리 하이픈
+MARKETPLACE_NAME = "plugin-cafe"  # §6.3 — 브랜드 "Plugin Cafe"의 소문자-하이픈 식별자 (디렉토리명과 무관)
 
 # 부록 A.3 — 최소 1개 제공해야 하는 컴포넌트
 _COMPONENTS = ("commands", "agents", "skills", "hooks", ".mcp.json")

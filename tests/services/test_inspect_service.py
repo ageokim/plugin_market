@@ -46,7 +46,7 @@ def test_entry_only_drift_flagged_and_repaired(env):
 
 def test_repair_prunes_stale_enabled_keys(env):
     env.settings_store.write(
-        {"enabledPlugins": {"phantom@plugin-market": True}})
+        {"enabledPlugins": {"phantom@plugin-cafe": True}})
     actions = env.inspect_service.repair()
     assert any("phantom" in action for action in actions)
     assert env.settings_store.read()["enabledPlugins"] == {}

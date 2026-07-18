@@ -118,14 +118,14 @@ class OrgService:
         Raises:
             PmError: 등록되지 않은 org.
         """
-        def _mutate(data):
-            entries = data.get("orgs", []) if isinstance(data, dict) else []
-            kept = [e for e in entries if e.get("name") != name]
-            if len(kept) == len(entries):
-                raise PmError(f"등록되지 않은 org: {name}")
-            return {"orgs": kept}
+        data = self._orgs_store.read()
+        entries = data.get("orgs", []) if isinstance(data, dict) else []
+        kept = [e for e in entries if e.get("name") != name]
+        if len(kept) == len(entries):
+            raise PmError(f"등록되지 않은 org: {name}")
 
-        self._orgs_store.update(_mutate)
+        # §12.2 순서: 설치본·preset 정리를 먼저 — 도중 실패 시 org 등록이
+        # 남아 있어 재시도 가능(등록 해제부터 하면 '미등록' 잔존만 남는다)
         removed = 0
         if self._installer is not None:
             for plugin_name in self._installer.installed_names(name):
@@ -133,6 +133,7 @@ class OrgService:
                 removed += 1
         pruned = (self._preset_pruner(name)
                   if self._preset_pruner is not None else 0)
+        self._orgs_store.write({"orgs": kept})
         return removed, pruned
 
     def revalidate_all(self) -> Dict[str, bool]:

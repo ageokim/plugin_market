@@ -33,7 +33,8 @@ def build_parser() -> argparse.ArgumentParser:
     org_add.add_argument("url", help="org URL 또는 이름")
     org_list = org_sub.add_parser("list", help="등록 org 목록·권한 상태")
     org_list.add_argument("--json", action="store_true", dest="as_json")
-    org_remove = org_sub.add_parser("remove", help="org 등록 해제")
+    org_remove = org_sub.add_parser("remove",
+        help="org 등록 해제 + 설치본 전부 삭제·preset 멤버 정리 (즉시)")
     org_remove.add_argument("org", help="org 이름")
 
     lst = sub.add_parser("list", help="카탈로그 스캔·조회")

@@ -29,7 +29,7 @@ HEAD = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Plugin Market — {title} (목업)</title>
+<title>Plugin Cafe — {title} (목업)</title>
 <style>
 {css}
 {mock}

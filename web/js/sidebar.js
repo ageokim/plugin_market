@@ -346,7 +346,7 @@ export function initSidebar(ctx) {
     pop.appendChild(el("div", "pop-h", `'${ps.name}' 멤버 편집 — 클릭해서 넣고 빼기`));
     if (!plugins.length) {
       pop.appendChild(el("div", "pop-empty",
-        "카탈로그가 비어 있습니다 — 위의 org 추가로 organization을 등록하면 플러그인이 나타납니다"));
+        "카탈로그가 비어 있습니다 — 챗 입력줄의 🔗 아이콘으로 organization을 등록하면 플러그인이 나타납니다"));
       return;
     }
     const list = el("div", "pop-scroll");
@@ -475,6 +475,8 @@ export function initSidebar(ctx) {
   function closeOrgPop() {
     $("orgPop").hidden = true;
     $("orgFab").classList.remove("open");
+    $("orgUrl").value = "";   // 만들다 만 상태를 남기지 않음 (§12.2)
+    $("orgErr").hidden = true;
   }
   $("orgFab").addEventListener("click", () => {
     const pop = $("orgPop");

@@ -30,12 +30,12 @@ def test_register_writes_spec_schema(registry, tmp_paths):
     assert entry == "plugin-a"
     data = json.loads(tmp_paths.marketplace_file.read_text(encoding="utf-8"))
     assert data == {
-        "name": "plugin-market",
+        "name": "plugin-cafe",
         "plugins": [{
             "name": "plugin-a",
             "source": "./plugins/org-a/plugin-a",
         }],
-    }  # §6.2 예시와 1:1
+    }  # §6.3 예시와 1:1
 
 
 def test_register_is_idempotent_for_same_source(registry):
@@ -59,7 +59,7 @@ def test_set_enabled_and_is_enabled(registry, tmp_paths):
     assert registry.is_enabled(entry) is True
     settings = json.loads(
         tmp_paths.claude_settings_local_file.read_text(encoding="utf-8"))
-    assert settings["enabledPlugins"] == {"plugin-a@plugin-market": True}
+    assert settings["enabledPlugins"] == {"plugin-a@plugin-cafe": True}
     registry.set_enabled(entry, False)
     assert registry.is_enabled(entry) is False
 
@@ -98,11 +98,11 @@ def test_other_settings_keys_preserved(registry, tmp_paths):
 def test_prune_enabled_keys_only_own_marketplace(registry, tmp_paths):
     store = JsonStore(tmp_paths.claude_settings_local_file, default=dict)
     store.write({"enabledPlugins": {
-        "ghost@plugin-market": True,   # 등록 없는 우리 키 — 제거 대상
+        "ghost@plugin-cafe": True,   # 등록 없는 우리 키 — 제거 대상
         "x@other-market": True,        # 타 마켓 — 불변
     }})
     removed = registry.prune_enabled_keys()
-    assert removed == ["ghost@plugin-market"]
+    assert removed == ["ghost@plugin-cafe"]
     assert store.read()["enabledPlugins"] == {"x@other-market": True}
 
 

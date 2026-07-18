@@ -102,7 +102,7 @@
 테스트:
 
 - [x] 기록형 GitRunner + tmp 경로로: 설치→활성→비활성→삭제 전 흐름 / 이름충돌 rename / uninstall 시 enabledPlugins 정리 / update의 활성 상태 보존(§6.2) / preset 일괄의 부분 실패 계속 진행·apply의 "멤버 외 전부 끄기"
-- [x] registry: marketplace.json이 Claude Code 스키마와 일치(§6.2 예시 대조)
+- [x] registry: marketplace.json이 Claude Code 스키마와 일치(§6.3 예시 대조)
 
 **DoD**: 임시 디렉토리 전 흐름 테스트 통과. 실 GitHub 없이 전부 fake로 검증됨.
 
@@ -131,7 +131,7 @@
 테스트:
 
 - [x] `app.test_client()` + fake services: 전 REST 엔드포인트 계약(정상·오류 코드) / lifecycle: heartbeat 끊김 → watchdog 종료 판정 로직
-- [x] curl 스모크: serve 기동 후 login→orgs→plugins 왕복, SSE 챗 1문답
+- [x] curl 스모크: session·heartbeat·plugins·term/token(401)·SSE 챗 확인 — 실 GitHub login→orgs 왕복은 M4 E2E로 이월
 
 **DoD**: 계약 테스트 전 통과 + curl 스모크 성공. 외부 인터페이스에서 127.0.0.1 외 접근 불가 확인.
 
@@ -208,7 +208,7 @@
 
 **DoD**: plugin.json 없는 사내형 repo가 설치→사용중→끄기→삭제 전 흐름 통과. 링크 실측 상태 도출.
 
-> 2026-07-16 완료(+사내 표준 구조·**컴포넌트 링크** 반영 — enable 시 commands는 파일 링크, skills는 디렉토리 링크(공식 지원), workflows는 파일 링크로 `.claude/` 아래 연결되어 claude가 인식. native는 marketplace 로딩이라 제외. disable/uninstall 실측 스캔 제거·update 재동기화. 299 테스트) — 295 테스트 통과. 사내 매니페스트 `plugin/plugin.json` 인식(링크명=매니페스트 name 우선, 파싱·불일치는 권장 경고), 링크 실측을 타깃 스캔으로 강인화. **실제 git repo(사내형, 맨 repo)로 전 흐름 실측**: 상대/절대 링크 생성·marketplace 비관여·disable 원본 무손상·uninstall 완전 정리. preset apply도 디스크 실측 열거로 전환.
+> 2026-07-16 완료(+사내 표준 구조·**컴포넌트 링크** 반영 — enable 시 commands는 파일 링크, skills는 디렉토리 링크(공식 지원), workflows는 파일 링크로 `.claude/` 아래 연결되어 claude가 인식. native는 marketplace 로딩이라 제외. disable/uninstall 실측 스캔 제거·update 재동기화. 299 테스트 통과. 사내 매니페스트 `plugin/plugin.json` 인식(링크명=매니페스트 name 우선, 파싱·불일치는 권장 경고), 링크 실측을 타깃 스캔으로 강인화. **실제 git repo(사내형, 맨 repo)로 전 흐름 실측**: 상대/절대 링크 생성·marketplace 비관여·disable 원본 무손상·uninstall 완전 정리. preset apply도 디스크 실측 열거로 전환.
 
 ## 4. 미결정·차단 요소
 
