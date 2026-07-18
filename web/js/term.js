@@ -65,11 +65,11 @@ export function initTerm(ctx) {
       fontSize: 13,
       scrollback: 5000,
       fontFamily: '"SF Mono", Menlo, Consolas, monospace',
-      theme: {
-        background: "#07090d",
-        foreground: "#cdd5e0",
-        cursor: "#34d399",
-        selectionBackground: "rgba(99,102,241,.35)",
+      theme: { // 로스티드 브라운 (§12.1 카페 테마)
+        background: "#3a2e26",
+        foreground: "#efe3d1",
+        cursor: "#e0a866",
+        selectionBackground: "rgba(224,168,102,.35)",
       },
     });
     fitAddon = new FitAddon.FitAddon();

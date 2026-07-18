@@ -23,3 +23,6 @@ plugins/*
 .claude/commands/
 .claude/skills/
 .claude/workflows/
+
+# 디자인 참조 번들 (18.8MB — 로컬 참조만, §12.1)
+docs/mockup/Plugin Cafe - *.html

@@ -1,8 +1,9 @@
 // 사이드바 (§12.2) — org 등록·플러그인 카탈로그·preset. fetch·렌더·이벤트만.
 // 외부 데이터 렌더는 전부 textContent (XSS §11).
 
-const STATE_LABEL = { enabled: ["사용중", "on"], installed: ["꺼짐", "off"], available: ["미설치", "no"] };
-const ACTION_LABEL = { install: "설치", uninstall: "삭제", enable: "켜기", disable: "끄기", update: "업데이트" };
+// 카페 표기 (§12.2): enabled=추출중 / installed=보관중 / available=재료 없음
+const STATE_LABEL = { enabled: ["추출중", "on"], installed: ["보관중", "off"], available: ["재료 없음", "no"] };
+const ACTION_LABEL = { install: "담기", uninstall: "삭제", enable: "켜기", disable: "끄기", update: "업데이트" };
 const BATCH_LABEL = { install: "일괄 설치", enable: "일괄 켜기", disable: "일괄 끄기", uninstall: "일괄 삭제", apply: "전환" };
 const BADGE = { "all-on": ["on", "전부 켜짐"], partial: ["partial", "일부 켜짐"], off: ["off", "꺼짐"] };
 const enc = encodeURIComponent;
@@ -98,7 +99,7 @@ export function initSidebar(ctx) {
     base.forEach((p) => { if (counts[p.state] !== undefined) counts[p.state] += 1; });
     const box = $("chips");
     box.textContent = "";
-    [["all", "전체"], ["enabled", "사용중"], ["installed", "꺼짐"], ["available", "미설치"]]
+    [["all", "전체"], ["enabled", "추출중"], ["installed", "보관중"], ["available", "재료 없음"]]
       .forEach(([key, label]) => {
         const chip = el("span", "chip" + (filter.state === key ? " on" : ""));
         if (key !== "all") chip.appendChild(el("span", "d " + key));
@@ -121,28 +122,32 @@ export function initSidebar(ctx) {
     const names = orgs.map((o) => o.name).concat(
       Object.keys(groups).filter((n) => !registered.has(n)).sort());
     let any = false;
+    let cardIdx = 0; // 레시피 카드 헤더 틴트 2톤 순환 (amber/green)
     names.forEach((name) => {
       const org = registered.get(name);
       let rows = groups[name] || [];
       if (!org) rows = rows.filter((p) => p.state !== "available"); // 설치본만
       if (!org && !rows.length) return;
       any = true;
-      box.appendChild(orgHeader(name, org, rows.length));
-      rows.forEach((p) => box.appendChild(pluginRow(p, org)));
+      const card = el("div", "org-card" + (cardIdx % 2 ? " tint-1" : ""));
+      cardIdx += 1;
+      card.appendChild(orgHeader(name, org, rows));
+      rows.forEach((p) => card.appendChild(pluginRow(p, org)));
+      box.appendChild(card);
     });
     if (!any) {
-      const empty = el("div", "empty",
-        orgs.length ? "조건에 맞는 플러그인이 없습니다" : "organization을 추가하면 플러그인이 표시됩니다");
-      empty.style.padding = "12px 14px";
-      box.appendChild(empty);
+      box.appendChild(el("div", "empty",
+        orgs.length ? "조건에 맞는 플러그인이 없습니다" : "organization을 추가하면 플러그인이 표시됩니다"));
     }
   }
 
-  function orgHeader(name, org, count) {
+  function orgHeader(name, org, rows) {
     const h = el("div", "org-h");
-    h.appendChild(icon("i-org", 13));
+    h.appendChild(icon("i-dripper", 14));
     h.appendChild(el("span", "", name));
-    h.appendChild(el("span", "n", `${count}개`));
+    const ready = rows.filter((p) => p.state !== "available").length;
+    h.appendChild(el("span", "n", `재료 ${rows.length}가지 · ${ready}가지 준비됨`));
+    h.appendChild(el("span", "tag recipe", "RECIPE"));
     if (org && !org.authorized) h.appendChild(el("span", "tag warn", "권한 없음")); // 잠금 표시 (§10.2)
     if (!org) h.appendChild(el("span", "tag", "미등록"));
     const sp = el("span", "sp");
@@ -159,7 +164,11 @@ export function initSidebar(ctx) {
 
   function pluginRow(p) {
     const row = el("div", "plugin");
+    const bean = icon("i-bean", 13); // 원두 — 추출중이면 진한 브라운
+    bean.classList.add(p.state === "enabled" ? "bean-on" : "bean-off");
+    row.appendChild(bean);
     row.appendChild(el("span", "nm", p.name));
+    row.appendChild(el("span", "lead")); // 메뉴판식 dotted leader
     row.appendChild(el("span", "desc", p.description || ""));
     // 행 hover 시 '+ preset' — 멤버 추가/제거 토글 (§6.5)
     const addp = iconBtn("i-plus", "preset에 추가", "btn ghost sm addp needs-auth");
@@ -181,7 +190,7 @@ export function initSidebar(ctx) {
     if (p.state === "available") {
       const b = textBtn("", "btn sm primary needs-auth");
       b.appendChild(icon("i-dl", 11));
-      b.appendChild(document.createTextNode("설치"));
+      b.appendChild(document.createTextNode("담기"));
       b.addEventListener("click", () => doAction(p, "install", acts));
       acts.appendChild(b);
       return;
@@ -280,8 +289,10 @@ export function initSidebar(ctx) {
   function renderPresets() {
     const box = $("presetList");
     box.textContent = "";
+    const board = el("div", "menu-board"); // 메뉴판 (dashed 보드, §12.2)
+    box.appendChild(board);
     if (!presets.length) {
-      box.appendChild(el("div", "empty", "아직 preset이 없습니다"));
+      board.appendChild(el("div", "empty", "아직 메뉴(preset)가 없습니다"));
       return;
     }
     presets.forEach((ps) => {
@@ -289,13 +300,14 @@ export function initSidebar(ctx) {
       const [cls, label] = BADGE[ps.badge] || ["off", ps.badge];
       row.appendChild(el("span", "pd " + cls));
       row.appendChild(el("span", "nm", ps.name));
+      row.appendChild(el("span", "lead")); // 메뉴판 dotted leader
       row.appendChild(el("span", "n", `${ps.members.length}개 · ${label}`));
       const apply = textBtn("전환", "btn sm needs-auth" + (ps.badge === "all-on" ? " primary" : ""));
       apply.addEventListener("click", () => presetBatch(ps.name, "apply"));
       const menu = textBtn("⋯", "btn ghost sm needs-auth");
       menu.addEventListener("click", (e) => { e.stopPropagation(); openPresetMenu(row, ps); });
       row.append(apply, menu);
-      box.appendChild(row);
+      board.appendChild(row);
     });
   }
 
@@ -346,7 +358,7 @@ export function initSidebar(ctx) {
     pop.appendChild(el("div", "pop-h", `'${ps.name}' 멤버 편집 — 클릭해서 넣고 빼기`));
     if (!plugins.length) {
       pop.appendChild(el("div", "pop-empty",
-        "카탈로그가 비어 있습니다 — 챗 입력줄의 🔗 아이콘으로 organization을 등록하면 플러그인이 나타납니다"));
+        "카탈로그가 비어 있습니다 — 챗 입력줄의 ☕ 아이콘으로 organization을 등록하면 플러그인이 나타납니다"));
       return;
     }
     const list = el("div", "pop-scroll");

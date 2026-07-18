@@ -179,7 +179,7 @@ $("loginForm").addEventListener("submit", async (e) => {
     const s = await api("/api/session");
     enterMain({ id: s.id || id, host: s.host, unverified: s.unverified });
     if (s.unverified) {
-      toast("미검증 세션 — 챗 입력줄의 🔗 아이콘으로 organization을 추가하면 검증됩니다", "", 8000);
+      toast("미검증 세션 — 챗 입력줄의 ☕ 아이콘으로 organization을 추가하면 검증됩니다", "", 8000);
     }
   } catch (ex) {
     err.textContent = ex.message;
