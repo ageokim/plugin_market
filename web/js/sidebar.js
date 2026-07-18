@@ -484,10 +484,24 @@ export function initSidebar(ctx) {
     filter.q = e.target.value.trim();
     render();
   });
+  function closePresetNew() {
+    $("presetNewRow").hidden = true;
+    $("presetNewName").value = "";
+  }
   $("presetNewBtn").addEventListener("click", () => {
     const row = $("presetNewRow");
     row.hidden = !row.hidden;
     if (!row.hidden) $("presetNewName").focus();
+  });
+  // 안 만들고 다른 곳을 누르면 입력 행 접힘 — org 팝오버와 동일 규칙 (§12.2)
+  document.addEventListener("click", (e) => {
+    if ($("presetNewRow").hidden) return;
+    if ($("presetNewRow").contains(e.target)) return;
+    if ($("presetNewBtn").contains(e.target)) return;
+    closePresetNew();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closePresetNew();
   });
   $("presetNewOk").addEventListener("click", createPreset);
   $("presetNewName").addEventListener("keydown", (e) => {

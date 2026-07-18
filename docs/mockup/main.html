@@ -602,6 +602,21 @@ details.inspect summary { display:flex; align-items:center; gap:6px; cursor:poin
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { orgPop.hidden = true; orgFab.classList.remove("open"); }
   });
+
+  // preset [+] 이름 입력 행 — 열기 + 바깥 클릭/Esc로 접힘 (§12.2)
+  const pRow = document.getElementById("presetNewRow");
+  const pBtn = document.getElementById("presetNewBtn");
+  pBtn.addEventListener("click", () => {
+    pRow.hidden = !pRow.hidden;
+    if (!pRow.hidden) document.getElementById("presetNewName").focus();
+  });
+  document.addEventListener("click", (e) => {
+    if (!pRow.hidden && !pRow.contains(e.target) && !pBtn.contains(e.target))
+      pRow.hidden = true;
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") pRow.hidden = true;
+  });
 </script>
 
 </body>
