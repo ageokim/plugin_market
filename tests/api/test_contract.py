@@ -199,6 +199,15 @@ def test_term_token_requires_login(client, container):
 
 
 # ── lifecycle (§12.5) ────────────────────────────────────────
+def test_health_reports_cafe_marker(client):
+    # system/takeover가 포트 점유자를 판별하는 무인증 마커 (§12.5)
+    import os
+    res = client.get("/api/health")
+    assert res.status_code == 200
+    body = res.get_json()
+    assert body["app"] == "plugin-cafe" and body["pid"] == os.getpid()
+
+
 def test_heartbeat_and_tab_close(client, app):
     assert client.post("/api/heartbeat", json={}).status_code == 400
     assert client.post("/api/heartbeat",

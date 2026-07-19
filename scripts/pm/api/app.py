@@ -140,4 +140,12 @@ def serve(container: Any, port: Optional[int] = None) -> None:
 
     Watchdog(lifecycle, _shutdown).start()
     resolved_port = port if port is not None else container.config.flask_port
+    # 이전 Plugin Cafe 서버가 포트를 물고 남았으면 종료 후 인계 —
+    # 무관한 프로세스면 손대지 않고 기존 안내로 실패 (§12.5)
+    from pm.errors import ConfigError
+    from pm.system.takeover import takeover_port
+    if not takeover_port(resolved_port):
+        raise ConfigError(  # cli.py의 PmError 경로로 종료코드 1 (§13.1)
+            f"포트 {resolved_port}가 다른 프로세스에 점유되어 있습니다 — "
+            "점유 프로세스 종료 또는 config.json의 flask_port 변경 (§12.5)")
     app.run(host=_HOST, port=resolved_port, threaded=True)

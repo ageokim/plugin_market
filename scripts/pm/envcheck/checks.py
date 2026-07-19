@@ -49,6 +49,7 @@ def build_checks(
     run: Callable[..., "subprocess.CompletedProcess[str]"] = None,
     system: Callable[[], str] = None,
     version: Optional[tuple] = None,
+    prober: Callable[[int], Optional[int]] = None,
 ) -> List[ProbeCheck]:
     """§9.4 표 13항목을 조립한다 — 항목 순서는 표 번호와 동일.
 
@@ -56,6 +57,7 @@ def build_checks(
         paths: ProjectPaths.
         config: ConfigProvider (host·port 등).
         which/run/system/version: 테스트 주입 seam — None이면 실물.
+        prober: 포트 점유자 판별 seam — None이면 takeover.probe_cafe_server.
     """
     which = which if which is not None else shutil.which
     run = run if run is not None else subprocess.run
@@ -207,16 +209,28 @@ def build_checks(
         return True, f"pty 사용 가능 ({module})", None
 
     def port_free() -> ProbeResult:
+        # bind 의미론을 serve와 일치시키기 위해 takeover.port_busy로 실측
+        # (TIME_WAIT를 점유로 오판하지 않음 — §12.5)
+        from pm.system.takeover import can_signal, port_busy, \
+            probe_cafe_server
         port = config.flask_port
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            sock.bind(("127.0.0.1", port))
-        except OSError:
-            return (False, f"포트 {port} 사용 중",
-                    "점유 프로세스 종료 또는 config.json의 flask_port 변경")
-        finally:
-            sock.close()
-        return True, f"포트 {port} 사용 가능", None
+        if not port_busy(port):
+            return True, f"포트 {port} 사용 가능", None
+        # 점유자가 이전 Plugin Cafe 서버면 serve가 자동 인계하므로
+        # 막지 않는다 (§12.5 system/takeover) — 무관 프로세스만 FAIL
+        probe = prober if prober is not None else probe_cafe_server
+        pid = probe(port)
+        if pid is not None and can_signal(pid):
+            return (True, f"포트 {port}를 이전 Plugin Cafe 서버"
+                    f"(pid {pid})가 점유 — 시작 시 자동 인계(§12.5)",
+                    None)
+        if pid is not None:  # 다른 사용자 소유 — serve도 EPERM 실패
+            return (False, f"포트 {port}를 다른 사용자의 Plugin Cafe "
+                    f"서버(pid {pid})가 점유 — 권한이 없어 자동 인계 불가",
+                    f"해당 사용자로 pid {pid} 종료 또는 config.json의 "
+                    "flask_port 변경")
+        return (False, f"포트 {port} 사용 중",
+                "점유 프로세스 종료 또는 config.json의 flask_port 변경")
 
     return [
         ProbeCheck("python_version", "python ≥ 3.8", BOOTSTRAP,

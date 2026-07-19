@@ -96,10 +96,30 @@ def test_port_free_check(tmp_paths):
     sock.bind(("127.0.0.1", 0))
     port = sock.getsockname()[1]
     try:
-        busy = _check_by_id(
-            build_checks(tmp_paths, _config(flask_port=port)),
+        busy = _check_by_id(  # 무관 프로세스 점유 → FAIL 유지
+            build_checks(tmp_paths, _config(flask_port=port),
+                         prober=lambda p: None),
             "port_free").run()
         assert not busy.passed and str(port) in busy.detail
+
+        import pm.system.takeover as takeover_mod
+        orig_can_signal = takeover_mod.can_signal
+        takeover_mod.can_signal = lambda pid: True
+        try:
+            cafe = _check_by_id(  # 이전 Plugin Cafe 서버 점유 → 자동 인계
+                build_checks(tmp_paths, _config(flask_port=port),
+                             prober=lambda p: 4242),
+                "port_free").run()
+            assert cafe.passed and "자동 인계" in cafe.detail
+
+            takeover_mod.can_signal = lambda pid: False
+            foreign_own = _check_by_id(  # 다른 사용자 소유 → 인계 불가 FAIL
+                build_checks(tmp_paths, _config(flask_port=port),
+                             prober=lambda p: 4242),
+                "port_free").run()
+            assert not foreign_own.passed and "권한" in foreign_own.detail
+        finally:
+            takeover_mod.can_signal = orig_can_signal
     finally:
         sock.close()
     free = _check_by_id(

@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import os
 import threading
 import time
 from typing import Callable, Dict, List, Optional
@@ -110,8 +111,14 @@ class Watchdog(threading.Thread):
 
 
 def make_lifecycle_bp(manager: LifecycleManager) -> Blueprint:
-    """POST /heartbeat · POST /tab-close (§5 api/lifecycle)."""
+    """POST /heartbeat · POST /tab-close · GET /health (§5 api/lifecycle)."""
     bp = Blueprint("lifecycle", __name__)
+
+    @bp.get("/health")
+    def health():
+        # 포트 인계(system/takeover §12.5)가 "포트 점유자 = Plugin Cafe
+        # 서버"를 판별하는 마커 — 무인증(로그인 전에도 응답해야 함).
+        return jsonify({"app": "plugin-cafe", "pid": os.getpid()})
 
     @bp.post("/heartbeat")
     def heartbeat():

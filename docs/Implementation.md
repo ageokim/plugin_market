@@ -125,6 +125,7 @@
 - [x] `api/app.py` — app factory, blueprint 등록, `web/` 정적 서빙, **127.0.0.1 바인딩 강제** (§5)
 - [x] `api/auth.py` — login/logout/session (§12.6) / `api/orgs.py` — org CRUD(권한 게이트) / `api/plugins.py` — 카탈로그·플러그인 액션·inspect / `api/presets.py` — preset CRUD·액션 (§5)
 - [x] `api/lifecycle.py` — heartbeat(2s)·tab-close, watchdog 단독 종료 판정 (§12.5)
+- [x] `system/takeover.py` + `GET /api/health` — 이전 Plugin Cafe 서버의 포트 점유를 자기 서버 확인 후 자동 인계(종료·회수), 무관 프로세스는 FAIL 유지 (§12.5, 2026-07-19)
 - [x] `api/chat.py` — SSE 스트리밍, Agent SDK(3.10+) / subprocess 폴백(3.8·3.9) 자동 전환, `pm` 가로채기(`^pm\s`+allowlist) (§12.3)
 - [x] `system/terminal.py` + `api/terminal.py` — pty 세션 관리(POSIX pty/pywinpty) ↔ `WS /api/term`(flask-sock), 토큰 발급 `POST /api/term/token`(단기·1회용 §11) (§12.4)
 
