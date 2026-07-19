@@ -26,7 +26,7 @@ def make_auth_bp(auth_service: Any, config: Any) -> Blueprint:
 
     @bp.post("/logout")
     def logout():
-        auth_service.logout()  # 세션 종료 + credentials.json 삭제 (§12.6)
+        auth_service.logout()  # 화면만 로그인으로 — 저장 자격 유지, 새 로그인이 덮어씀 (§12.6)
         return jsonify({"ok": True})
 
     @bp.get("/session")

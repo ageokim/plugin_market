@@ -133,11 +133,14 @@ class AuthService:
         return self._commit(self._pending["id"])
 
     def logout(self) -> None:
-        """자격 삭제 — 파일 제거 (§8.4)."""
+        """보류 자격만 파기 — 저장 파일은 유지 (§12.6).
+
+        로그아웃은 로그인 화면으로 돌아가는 동작일 뿐, 저장된 자격은
+        지우지 않는다 — 다른 계정으로 로그인 성공하면 그 정보로
+        덮어써 교체된다(2026-07-19 결정). 파일 제거가 필요하면
+        data/credentials.json을 직접 삭제한다.
+        """
         self._pending = None
-        path = self._store.path
-        if path.exists():
-            path.unlink()
 
     def _commit(self, login_name: str) -> LoginResult:
         assert self._pending is not None

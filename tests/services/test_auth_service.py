@@ -77,13 +77,17 @@ def test_verify_current_without_login_raises(env):
         env.auth.verify_current()
 
 
-def test_logout_removes_file_and_pending(env):
+def test_logout_keeps_file_and_new_login_overwrites(env):
+    # 로그아웃은 화면 복귀일 뿐 — 파일 유지, 새 계정 로그인이 덮어씀 (§12.6)
     _set_host(env)
     env.auth.login("ageokim", "ghp_x")
     env.auth.logout()
-    assert not env.credentials_store.exists()
-    assert env.auth.current_token() is None
-    assert env.auth.load_saved() is None
+    assert env.credentials_store.exists()
+    assert env.auth.load_saved() == {"id": "ageokim", "token": "ghp_x"}
+
+    env.github.login = "other-user"
+    env.auth.login("other-user", "ghp_new")
+    assert env.auth.load_saved() == {"id": "other-user", "token": "ghp_new"}
 
 
 def test_current_token_prefers_pending_over_saved(env):
