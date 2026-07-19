@@ -118,7 +118,7 @@ async function recheckSession() {
 const TABS = {
   chat: {
     btn: "tabChat", view: "view-chat", action: "새 대화",
-    hint: "cwd=plugin_market · pm 명령도 입력 가능 (list·enable·disable·inspect)",
+    hint: "cwd=repo 루트 · pm 명령도 입력 가능 (list·enable·disable·inspect)",
   },
   term: {
     btn: "tabTerm", view: "view-term", action: "새 터미널",
@@ -189,7 +189,7 @@ $("loginForm").addEventListener("submit", async (e) => {
   }
 });
 
-// ── 로그아웃 = 세션 종료 + credentials.json 삭제 (§12.6) ──
+// ── 로그아웃 = 로그인 화면 복귀 — 저장 자격 유지, 새 로그인이 덮어씀 (§12.6) ──
 $("logoutBtn").addEventListener("click", async () => {
   try { await api("/api/logout", { method: "POST" }); } catch { /* 무시 */ }
   chat.reset();

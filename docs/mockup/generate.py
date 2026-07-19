@@ -100,7 +100,7 @@ FILL = {
           </div>
         </div>''',
   '<span class="hint" id="hintTxt"></span>':
-      '<span class="hint" id="hintTxt">plugin-a 설치됨 — 새 대화부터 적용 · cwd=plugin_market</span>',
+      '<span class="hint" id="hintTxt">plugin-a 설치됨 — 새 대화부터 적용 · cwd=repo 루트</span>',
 }
 
 DEMO_JS = """

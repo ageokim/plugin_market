@@ -11,8 +11,8 @@
 ## 시작하기
 
 ```bash
-git clone https://github.com/ageokim/plugin_market.git
-cd plugin_market
+git clone https://github.com/ageokim/plugin_cafe.git
+cd plugin_cafe
 ./run.sh          # linux/macOS  (windows: run.cmd)
 ```
 
