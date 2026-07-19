@@ -44,6 +44,15 @@ export function initSidebar(ctx) {
     return b;
   }
 
+  // 팝업이 사이드바 하단을 넘으면 위로 펼침 — 잘림 방지 (§12.2)
+  function placePop(pop) {
+    pop.classList.remove("up");
+    const body = document.querySelector(".sb-body");
+    const room = body.getBoundingClientRect().bottom
+      - pop.parentElement.getBoundingClientRect().bottom;
+    if (room < pop.offsetHeight + 8) pop.classList.add("up");
+  }
+
   let onPopClose = null; // 팝업이 닫힐 때 1회 실행 (멤버 편집 후 재렌더용)
   function closePop() {
     if (openPop) { openPop.remove(); openPop = null; }
@@ -343,6 +352,7 @@ export function initSidebar(ctx) {
       } catch (e) { fail(e); }
     });
     row.appendChild(pop);
+    placePop(pop);
     openPop = pop;
   }
 
@@ -374,6 +384,7 @@ export function initSidebar(ctx) {
       list.appendChild(b);
     });
     pop.appendChild(list);
+    placePop(pop); // 멤버 목록으로 내용이 커졌으니 방향 재판정
   }
 
   // + preset 팝업 — 멤버 추가/제거 토글
@@ -400,6 +411,7 @@ export function initSidebar(ctx) {
       pop.appendChild(b);
     });
     row.appendChild(pop);
+    placePop(pop);
     openPop = pop;
   }
 

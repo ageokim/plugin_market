@@ -166,7 +166,10 @@ input:focus { border-color:var(--link); }
 .sb-sec.recipe-t .t { margin-bottom:0; }
 #pluginList { padding:10px 14px 14px; display:flex; flex-direction:column; gap:10px; }
 .org-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--r);
-            box-shadow:0 2px 8px var(--card-sh); overflow:hidden; }
+            box-shadow:0 2px 8px var(--card-sh); }
+/* overflow:hidden 대신 모서리별 radius — 행의 + preset 팝업이 잘리지 않게 (§12.2) */
+.org-card > .org-h { border-radius:calc(var(--r) - 1px) calc(var(--r) - 1px) 0 0; }
+.org-card > .plugin:last-child { border-radius:0 0 calc(var(--r) - 1px) calc(var(--r) - 1px); }
 .org-h { display:flex; align-items:center; gap:7px; padding:10px 13px;
          font-size:.8rem; font-weight:700; font-family:var(--serif);
          border-bottom:1px solid var(--line); background:rgba(192,138,82,.1); }
@@ -216,6 +219,8 @@ input:focus { border-color:var(--link); }
        background:var(--panel); border:1px solid var(--line3); border-radius:10px;
        box-shadow:0 12px 32px var(--pop-sh); min-width:150px; max-width:240px;
        padding:4px; display:flex; flex-direction:column; }
+/* 아래 공간이 부족하면 JS가 .up을 붙여 위로 펼친다 (§12.2) */
+.pop.up { top:auto; bottom:calc(100% - 4px); }
 .pop button { text-align:left; background:none; border:none; color:var(--text);
               font-size:.72rem; padding:6px 10px; border-radius:7px; cursor:pointer; }
 .pop button:hover { background:rgba(138,90,59,.08); }
